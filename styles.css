@@ -338,3 +338,66 @@ textarea { width: 100%; min-height: 50vh; font: inherit; color: inherit; backgro
 .wx-day .ico { color: var(--accent); }
 .wx-tip { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: var(--accent-soft); color: var(--text); font-size: 14px; }
 .wx-tip .ico { color: var(--accent); margin-top: 2px; }
+
+/* ---------- taal ---------- */
+.langs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; justify-content: center; }
+.langs button { padding: 8px 12px; border-radius: 99px; background: var(--surface-2); font-weight: 650; font-size: 13.5px; box-shadow: inset 0 0 0 1px var(--line); }
+.langs button.on { background: var(--text); color: var(--bg); }
+.lock .langs { margin: 0 0 auto; padding-top: calc(env(safe-area-inset-top) + 8px); }
+.lock .langs button { background: rgba(255,255,255,.18); color: #fff; box-shadow: none; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.lock .langs button.on { background: #fff; color: #111; }
+
+/* ---------- leesvoer & spaans tegels ---------- */
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0 4px; }
+.duo-card { border-radius: 22px; min-height: 150px; padding: 14px; color: #fff; background: center/cover no-repeat; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; box-shadow: var(--shadow); }
+.duo-card .ico { width: 26px; height: 26px; margin-bottom: auto; }
+.duo-card strong { font-size: 17px; }
+.duo-card span { font-size: 12.5px; opacity: .9; line-height: 1.3; }
+
+/* ---------- foto's ---------- */
+.tipcard { padding: 0; overflow: hidden; }
+.tipcard > .tip { padding: 16px; }
+.tip-img { height: 170px; background: var(--surface-2) center/cover no-repeat; }
+.credit { display: block; margin-top: 8px; font-size: 11px; color: var(--muted); text-decoration: none; }
+.pop-img { height: 110px; margin: -14px -16px 10px; border-radius: 18px 18px 0 0; background: center/cover no-repeat; }
+.stay-card { overflow: hidden; }
+.stay-img { display: block; height: 130px; margin: -16px -16px 12px; background: var(--surface-2) center/cover no-repeat; }
+.stay-img.big { height: 190px; }
+.btn.booking { background: #003580; color: #fff; }
+
+/* ---------- leesvoer ---------- */
+.art-card { display: flex; gap: 14px; align-items: flex-start; }
+.art-thumb { width: 64px; height: 64px; border-radius: 16px; flex: none; background: linear-gradient(150deg, var(--p-ba), var(--p-calafate)) center/cover; display: grid; place-items: center; color: #fff; }
+.article { background: var(--surface); border-radius: var(--r); padding: 6px 20px 14px; box-shadow: var(--shadow); margin-bottom: 14px; font-size: 17px; line-height: 1.65; }
+.article .lead { font-size: 18.5px; font-weight: 600; line-height: 1.5; }
+.article h3 { font-size: 19px; margin: 24px 0 4px; letter-spacing: -0.01em; }
+.article p { margin: 10px 0; }
+.facts-card ul.clean li { font-size: 15px; }
+.facts-card ul.clean li .ico { color: var(--sun); }
+
+/* ---------- spaans ---------- */
+.search { position: sticky; top: calc(env(safe-area-inset-top) + 56px); z-index: 5; display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 16px; padding: 4px 14px; box-shadow: var(--shadow); margin: 6px 0 10px; }
+.search .ico { color: var(--muted); }
+.search input { flex: 1; border: 0; background: none; font: inherit; font-size: 16px; padding: 10px 0; color: var(--text); outline: none; }
+.phrases { padding: 4px 16px; }
+.phrase { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--line); }
+.phrase:first-child { border-top: 0; }
+.phrase strong { font-size: 16px; }
+.qr-card { text-align: center; background: #fff; }
+.qr-card img { width: 100%; max-width: 280px; image-rendering: pixelated; display: block; margin: 0 auto 6px; }
+
+/* ---------- kalender (weekoverzicht met namen) ---------- */
+.wkhead { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; text-align: center; margin: 4px 0 6px; }
+.wk { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto auto; gap: 3px 3px; margin-bottom: 8px; background: var(--surface); border-radius: 18px; padding: 8px 5px 10px; box-shadow: var(--shadow); }
+.wnum { grid-row: 1; text-align: center; font-weight: 800; font-size: 15px; color: var(--text); position: relative; padding: 2px 0; border-radius: 10px; }
+.wnum small { display: block; font-size: 9px; text-transform: uppercase; color: var(--muted); font-weight: 700; line-height: 1; }
+.wnum.off, .wact.off { color: var(--muted); opacity: .45; font-weight: 600; }
+.wnum.today { background: var(--text); color: var(--bg); }
+.wnum .tdot { position: absolute; top: 3px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--todo); }
+.wbar { grid-row: 2; font-size: 11px; font-weight: 800; padding: 4px 6px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: color-mix(in srgb, var(--c) 16%, var(--surface)); color: color-mix(in srgb, var(--c) 80%, var(--text)); border-left: 3px solid var(--c); }
+.wact { grid-row: 3; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; color: var(--text); font-size: 10px; font-weight: 600; line-height: 1.15; padding-top: 2px; min-width: 0; }
+.wact .ico { color: var(--muted); width: 15px; height: 15px; }
+.wact span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
+.wbar.one { font-size: 9.5px; padding: 4px 3px 4px 4px; border-left-width: 2px; text-overflow: clip; letter-spacing: -0.02em; }
+.wact span { word-break: normal; overflow-wrap: normal; hyphens: auto; }
