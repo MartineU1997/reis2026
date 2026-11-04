@@ -13,7 +13,7 @@ const store = {
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ic = (n, cls = '') => `<svg class="ico ${cls}"><use href="#i-${n}"/></svg>`;
 
-let T = null, PL = [], RT = null, KEY = null; // trip, places, routes, crypto key
+let T = null, PL = [], RT = null, CL = {}, KEY = null; // trip, places, routes, crypto key
 
 /* ================= crypto ================= */
 const b64 = { dec: s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), enc: a => { let s = ''; new Uint8Array(a).forEach(b => s += String.fromCharCode(b)); return btoa(s); } };
@@ -127,7 +127,7 @@ const Sync = {
           all[r.k] = { v: d.v, t, by: d.by }; changed = true;
         } catch {}
       }
-      if (changed) { store.set('shared', all); if (/^#\/(todo|notities|vandaag|meer)/.test(location.hash || '#/vandaag') && !document.activeElement?.matches('textarea')) route(true); }
+      if (changed) { store.set('shared', all); if (/^#\/(todo|notities|vandaag|meer|pakken)/.test(location.hash || '#/vandaag') && !document.activeElement?.matches('textarea')) route(true); }
       this.ok(true);
     } catch { this.ok(false); }
   },
@@ -239,7 +239,7 @@ function stageScroller() {
 function tiles() {
   const open = openTodoCount();
   const t = (href, icon, color, label, badge) => `<a class="tile" href="${href}"><div class="bubble" style="background:${color};color:#fff">${ic(icon)}</div>${label}${badge ? `<span class="badge-n">${badge}</span>` : ''}</a>`;
-  return `<div class="tiles">${t('#/boekingen', 'ticket', 'var(--m-flight)', 'Boekingen')}${t('#/todo', 'list-checks', 'var(--todo)', 'Te doen', open)}${t('#/kaart', 'route', 'var(--m-hike)', 'Route')}${t('#/info', 'phone', '#e11d48', 'Nood')}</div>`;
+  return `<div class="tiles">${t('#/boekingen', 'ticket', 'var(--m-flight)', 'Boekingen')}${t('#/todo', 'list-checks', 'var(--todo)', 'Te doen', open)}${t('#/weer', 'cloud-sun', 'var(--m-boat)', 'Weer')}${t('#/info', 'phone', '#e11d48', 'Nood')}</div>`;
 }
 function vToday() {
   setChrome('Vandaag');
@@ -260,6 +260,9 @@ function vToday() {
     h += `<div class="hero" style="background-image:url(${img(p) || 'img/uco.webp'})"><div class="eyebrow">${ic('calendar-days', 'sm')} Dag ${i + 1} van ${T.days.length} · ${esc(fmt(t, true))}</div>
       <h2>${esc(d.title)}</h2><p>${esc(d.place)}</p>${d.sleep ? `<div class="glass-row"><span class="glass">${ic('bed-double', 'sm')} ${esc(stay(d.sleep).name)}</span></div>` : ''}</div>`;
     h += tiles();
+    if (p) { const fd = fcDays(p.id, [t])[0], c = CL[p.id];
+      if (fd || c) { const [icn, lbl] = fd ? WMO(fd.code) : ['cloud-sun', 'Gemiddeld']; h += `<a class="card wx" href="#/weer" style="display:flex;align-items:center;gap:14px"><div class="wx-ico">${ic(icn, 'lg')}</div><div class="grow"><div class="wx-temp" style="font-size:24px">${Math.round(fd ? fd.max : c.tmax)}° <span>/ ${Math.round(fd ? fd.min : c.tmin)}°</span></div><div class="tiny muted">${fd ? `${esc(lbl)} · ${fd.rain ?? 0}% kans op regen · wind tot ${Math.round(fd.gust)} km/u` : 'Gemiddeld voor deze periode'}</div></div>${ic('chevron-right', 'chev')}</a>`; }
+      forecast(p.id).then(f => { if (f && !store.get('fcShown:' + t)) { store.set('fcShown:' + t, 1); if (location.hash.startsWith('#/vandaag') || !location.hash) route(true); } }); }
     const nx = nextMove();
     if (nx) h += `<div class="h-sec">${ic('clock')} Volgende vertrek <small>${nx.x.date === t ? 'vandaag' : esc(fmt(nx.x.date))}</small></div><div class="tl">${tlItem({ ref: nx.x.id })}</div>`;
     h += `<div class="h-sec">${ic('sun')} Vandaag</div>` + timeline(d) + (d.sleep ? stayCard(stay(d.sleep)) : '');
@@ -345,12 +348,14 @@ function vPlace(id) {
   view.innerHTML = `<div class="hero tall" style="background-image:url(${img(p)})"><div class="eyebrow">${p.country === 'CL' ? '🇨🇱 Chili' : '🇦🇷 Argentinië'} · ${esc(range(p.dates[0], p.dates[1]))}</div><h2>${esc(p.name)}</h2><p>${esc(p.tagline)}</p>
     <div class="glass-row"><a class="glass" style="color:#fff" href="#/kaart/${id}">${ic('map', 'sm')} Op de kaart</a></div></div>
     <div class="card"><p style="margin:0">${esc(p.intro)}</p></div>
+    <div class="h-sec">${ic('cloud-sun')} Weer</div><div id="wxslot">${weatherCard(id)}</div>
     ${p.plan ? `<div class="h-sec">${ic('calendar-days')} Voorstel</div><div class="card">${p.plan.map(x => `<div class="plan"><b>${esc(x.day)}</b><div>${esc(x.text)}</div></div>`).join('')}</div>` : ''}
     <div class="seg" style="margin-top:20px">${tabs.map(([k, l, arr]) => `<button data-t="${k}" class="${placeTab === k ? 'on' : ''}">${l} <span class="muted">${arr.length}</span></button>`).join('')}</div>
     ${cur[2].map(it => tipCard(p, it, cur[0])).join('')}
     <div class="h-sec">${ic('lightbulb')} Goed om te weten</div><div class="card"><ul class="clean">${p.tips.map(t => `<li>${ic('check', 'sm')}<span>${esc(t)}</span></li>`).join('')}</ul></div>
     ${stays.length ? `<div class="h-sec">${ic('bed-double')} Hier slapen jullie</div>` + stays.map(s => stayCard(s, range(s.in, s.out))).join('') : ''}`;
   view.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { placeTab = b.dataset.t; const y = scrollY; vPlace(id); scrollTo(0, y); });
+  forecast(id).then(f => { const el = $('#wxslot'); if (f && el && location.hash === '#/plek/' + id) el.innerHTML = weatherCard(id); });
 }
 
 /* ---------- map ---------- */
@@ -358,13 +363,15 @@ let MAP = null;
 const MODE = { flight: { c: '#6366f1', w: 2.5, dash: '6 7', label: 'Vlucht', icon: 'plane' }, bus: { c: '#f59e0b', w: 4, label: 'Bus', icon: 'bus' }, boat: { c: '#06b6d4', w: 4, dash: '2 8', label: 'Boot', icon: 'ship' }, car: { c: '#64748b', w: 3, label: 'Auto', icon: 'car-taxi-front' }, hike: { c: '#16a34a', w: 4, label: 'Wandelen', icon: 'footprints' } };
 const isDark = () => document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
 let mapTips = store.get('mapTips', true);
+const mapModes = store.get('mapModes', {});
 function vMap(focus, tipName) {
   setChrome('Kaart', { full: true, hideBar: true });
   view.innerHTML = `<div class="mapwrap"><div id="map"></div></div>
     <div class="map-top"><div class="chips">
       <button class="chip ${mapTips ? 'on' : ''}" id="tipsBtn">${ic('sparkles', 'sm')} Tips</button>
-      <button class="chip" id="allBtn">${ic('route', 'sm')} Hele route</button>
-      ${Object.entries(MODE).map(([k, m]) => `<span class="chip"><i class="sw" style="background:${m.c}"></i>${m.label}</span>`).join('')}
+      <button class="chip" id="allBtn">${ic('map', 'sm')} Zuid-Amerika</button>
+      <button class="chip" id="worldBtn">${ic('plane', 'sm')} Hele reis</button>
+      ${Object.entries(MODE).map(([k, m]) => `<button class="chip mode ${mapModes[k] === false ? 'off' : ''}" data-mode="${k}"><span class="mi" style="background:${m.c}">${ic(m.icon)}</span>${m.label}</button>`).join('')}
     </div></div>
     <div class="map-bottom"><div class="hscroll">${ORDER.map((id, i) => { const p = place(id); return `<button class="mstage" data-fly="${id}"><div class="thumb" style="background-image:url(${img(p)})"></div><div style="text-align:left"><strong>${i + 1}. ${esc(p.name)}</strong><span>${esc(range(p.dates[0], p.dates[1]))}</span></div></button>`; }).join('')}</div></div>`;
   if (!window.L) { $('#map').innerHTML = '<div class="card" style="margin:120px 16px">Kaart kon niet laden.</div>'; return; }
@@ -374,14 +381,19 @@ function vMap(focus, tipName) {
   fetch('geo/countries.json').then(r => r.json()).then(geo => L.geoJSON(geo, { pane: 'land', interactive: false,
     style: f => ({ color: isDark() ? '#334155' : '#b8c4d4', weight: 1, fillColor: f.properties.main ? (isDark() ? '#1e2733' : '#fbfaf7') : (isDark() ? '#161d27' : '#eef0f2'), fillOpacity: 1 }) }).addTo(map)).catch(() => {});
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', className: 'osm-tiles' }).addTo(map);
+  const modeLayers = Object.fromEntries(Object.keys(MODE).map(k => [k, L.layerGroup()]));
   for (const l of RT.legs) {
     const m = MODE[l.mode]; if (!m) continue;
-    if (l.mode !== 'flight') L.polyline(l.line, { color: '#fff', weight: m.w + 4, opacity: 0.9, interactive: false }).addTo(map);
-    L.polyline(l.line, { color: m.c, weight: m.w, dashArray: m.dash, opacity: 0.95, lineCap: 'round' }).addTo(map)
+    const g = modeLayers[l.mode];
+    if (l.mode !== 'flight') g.addLayer(L.polyline(l.line, { color: '#fff', weight: m.w + 4, opacity: 0.9, interactive: false }));
+    L.polyline(l.line, { color: m.c, weight: m.w, dashArray: m.dash, opacity: 0.95, lineCap: 'round' }).addTo(g)
       .bindPopup(() => { const x = byId(l.id) || hike(l.id) || hike(l.id.replace(/b$/, '')); return `<strong>${ic(m.icon, 'sm')} ${esc(x?.title || x?.name || m.label)}</strong>${x?.date ? `<div class="muted">${esc(fmt(x.date))}</div>` : ''}${x?.date ? `<a class="btn" href="#/boeking/${x.id}">Details</a>` : ''}`; });
   }
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const mk = (ll, html, cls, size, bg) => L.marker(ll, { icon: L.divIcon({ className: '', html: `<div class="${cls}" style="background:${bg}">${html}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }) });
+  for (const [k, name, sub] of [['ams', 'Amsterdam', 'Vertrek 29 nov 07:10 · terug 21 dec 15:05'], ['mad', 'Madrid', 'Overstap heen en terug']])
+    mk(RT.points[k], ic('plane'), 'tip-marker', 26, MODE.flight.c).addTo(modeLayers.flight).bindPopup(`<strong>${name}</strong><div class="muted">${sub}</div><a class="btn" href="#/boeking/out">Vlucht heen</a> <a class="btn" href="#/boeking/home">Vlucht terug</a>`);
+  for (const [k, g] of Object.entries(modeLayers)) if (mapModes[k] !== false) g.addTo(map);
   ORDER.forEach((id, i) => {
     const p = place(id), s = stay(T.days.find(d => d.placeId === id && d.sleep)?.sleep);
     mk(s?.ll || p.center, i + 1, 'stop-marker', 30, css(`--p-${id}`)).setZIndexOffset(1000).addTo(map)
@@ -400,7 +412,9 @@ function vMap(focus, tipName) {
     tipLayer.addLayer(m); tipMarkers[p.id + '|' + it.name] = m;
   }
   if (mapTips) tipLayer.addTo(map);
-  const fitAll = () => { map.invalidateSize(); map.fitBounds(L.latLngBounds(RT.legs.flatMap(l => l.line)), { paddingTopLeft: [20, 70], paddingBottomRight: [20, 190] }); };
+  const fitLegs = legs => { map.invalidateSize(); map.fitBounds(L.latLngBounds(legs.flatMap(l => l.line)), { paddingTopLeft: [20, 70], paddingBottomRight: [20, 190] }); };
+  const fitAll = () => fitLegs(RT.legs.filter(l => !l.intl));
+  const fitWorld = () => fitLegs(RT.legs);
   const fly = id => { const p = place(id); map.flyTo(p.center, p.zoom, { duration: 0.8 }); };
   requestAnimationFrame(() => {
     map.invalidateSize();
@@ -411,9 +425,70 @@ function vMap(focus, tipName) {
   });
   $('#tipsBtn').onclick = () => { mapTips = !mapTips; store.set('mapTips', mapTips); $('#tipsBtn').classList.toggle('on', mapTips); mapTips ? tipLayer.addTo(map) : tipLayer.remove(); };
   $('#allBtn').onclick = fitAll;
+  $('#worldBtn').onclick = () => { if (mapModes.flight === false) view.querySelector('[data-mode=flight]').click(); fitWorld(); };
+  view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+    const k = b.dataset.mode, on = mapModes[k] === false;
+    mapModes[k] = on; store.set('mapModes', mapModes); b.classList.toggle('off', !on);
+    on ? modeLayers[k].addTo(map) : modeLayers[k].remove();
+    toast(`${MODE[k].label} ${on ? 'aan' : 'uit'}`);
+  });
   view.querySelectorAll('[data-fly]').forEach(b => b.onclick = () => fly(b.dataset.fly));
   L.control.zoom({ position: 'topright' }).addTo(map);
   map.getContainer().querySelector('.leaflet-top.leaflet-right').style.marginTop = 'calc(env(safe-area-inset-top) + 60px)';
+}
+
+
+/* ---------- weer ---------- */
+const WLL = { ba: [-34.5873, -58.4128], chalten: [-49.3315, -72.8863, 400], calafate: [-50.3393, -72.2716], natales: [-51.7308, -72.5064], paine: [-51.0, -73.0, 250], mendoza: [-32.9866, -68.8683], uco: [-33.651, -69.23] };
+const WMO = c => c === 0 ? ['sun', 'Zonnig'] : c <= 2 ? ['cloud-sun', 'Licht bewolkt'] : c === 3 ? ['cloud', 'Bewolkt'] : c <= 48 ? ['cloud-fog', 'Mist'] : c <= 57 ? ['cloud-drizzle', 'Motregen']
+  : c <= 67 ? ['cloud-rain', 'Regen'] : c <= 77 ? ['cloud-snow', 'Sneeuw'] : c <= 82 ? ['cloud-sun-rain', 'Buien'] : c <= 86 ? ['cloud-snow', 'Sneeuwbuien'] : ['cloud-lightning', 'Onweer'];
+async function forecast(id) {
+  const k = 'fc:' + id, c = store.get(k);
+  if (c && Date.now() - c.at < 3 * 3600e3) return c;
+  if (!navigator.onLine || !WLL[id]) return c;
+  const [lat, lon, el] = WLL[id];
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_gusts_10m_max,uv_index_max&timezone=auto&forecast_days=16${el ? '&elevation=' + el : ''}`);
+    const j = await r.json(); if (!j.daily) return c;
+    const v = { at: Date.now(), d: j.daily }; store.set(k, v); return v;
+  } catch { return c; }
+}
+function wearTip(c, id) {
+  if (c.tmax >= 24) return 'Zomers: korte broek of jurkje, zonnebrand, pet. Een trui voor de avond.';
+  if (id === 'paine') return 'Laagjes: thermoshirt, fleece en een winddichte regenjas. Muts en handschoenen bij de hand: bij de torens en in de Valle del Francés is het kouder.';
+  return 'Laagjes: thermoshirt, fleece en een wind- en regenjas. Muts en handschoenen voor de ochtend.';
+}
+function fcDays(id, dates) {
+  const f = store.get('fc:' + id); if (!f) return [];
+  return f.d.time.map((t, i) => ({ t, code: f.d.weather_code[i], max: f.d.temperature_2m_max[i], min: f.d.temperature_2m_min[i], rain: f.d.precipitation_probability_max[i], gust: f.d.wind_gusts_10m_max[i], uv: f.d.uv_index_max[i] }))
+    .filter(d => !dates || dates.includes(d.t));
+}
+const stayDates = id => T.days.filter(d => d.placeId === id).map(d => d.date);
+function fcStrip(days) {
+  return `<div class="wx-strip">${days.map(d => { const [icn, lbl] = WMO(d.code); return `<div class="wx-day" title="${lbl}"><span class="tiny muted">${esc(fmt(d.t).split(' ').slice(0, 2).join(' '))}</span>${ic(icn, 'lg')}<b>${Math.round(d.max)}°</b><span class="tiny muted">${Math.round(d.min)}°</span>${d.rain != null ? `<span class="tiny" style="color:var(--m-boat)">${d.rain}%</span>` : ''}</div>`; }).join('')}</div>`;
+}
+function weatherCard(id, compact) {
+  const c = CL[id], p = place(id); if (!c) return '';
+  const dates = stayDates(id), fc = fcDays(id, dates);
+  const first = dates[0], from = first ? (() => { const d = parseD(first); d.setDate(d.getDate() - 15); return iso(d); })() : null;
+  const icon = c.tmax >= 24 ? 'sun' : c.rainDays >= 5 ? 'cloud-sun-rain' : 'cloud-sun';
+  return `<div class="card wx">${compact ? `<a class="row" href="#/plek/${id}" style="color:inherit;margin-bottom:10px"><div class="thumb" style="width:44px;height:44px;border-radius:14px;background:center/cover url(${img(p)})"></div><div class="grow"><strong>${esc(p.name)}</strong><div class="tiny muted">${esc(range(p.dates[0], p.dates[1]))}</div></div></a>` : ''}
+    <div class="row"><div class="wx-ico">${ic(icon, 'lg')}</div><div class="grow"><div class="wx-temp">${Math.round(c.tmax)}° <span>/ ${Math.round(c.tmin)}°</span></div><div class="tiny muted">Gemiddeld overdag / 's nachts in deze periode</div></div></div>
+    <div class="wx-facts"><span>${ic('umbrella', 'sm')} regen op ${Math.round(c.rainDays)} van 10 dagen</span><span>${ic('wind', 'sm')} windstoten ~${c.gust} km/u</span><span>${ic('sunrise', 'sm')} ${c.sunrise} · ${ic('sunset', 'sm')} ${c.sunset}</span><span>${ic('thermometer', 'sm')} ${Math.round(c.tminCold)}° tot ${Math.round(c.tmaxHot)}°</span></div>
+    ${fc.length ? `<div class="tiny muted" style="font-weight:700;margin:14px 0 6px">${ic('sparkles', 'sm')} Live verwachting voor jullie dagen</div>` + fcStrip(fc) : (from && todayIso() < from ? `<div class="tiny muted" style="margin-top:12px">${ic('clock', 'sm')} De live verwachting verschijnt vanaf ${esc(fmt(from))}.</div>` : '')}
+    ${compact ? '' : `<div class="wx-tip">${ic('shirt', 'sm')} <span>${esc(wearTip(c, id))}</span></div>`}
+    ${id === 'paine' && !compact ? `<div class="tiny muted" style="margin-top:8px">Op open stukken en bij de meren kan de wind veel harder zijn dan het gemiddelde, met windstoten boven 80 km/u.</div>` : ''}
+  </div>`;
+}
+async function refreshForecasts(ids) {
+  if (!navigator.onLine) return;
+  await Promise.all(ids.map(forecast));
+}
+function vWeather() {
+  setChrome('Weer', { back: true });
+  const render = () => { view.innerHTML = `<p class="muted small" style="margin:4px 2px 12px">Gemiddeld weer per plek, berekend uit 11 jaar weerdata (2015–2025) voor precies jullie reisperiode. Vanaf ongeveer 15 dagen vooraf verschijnt ook de live verwachting.</p>` + ORDER.map(id => weatherCard(id, true)).join('') + `<p class="tiny muted" style="text-align:center">Weerdata: Open-Meteo (ERA5). Een indicatie, geen garantie.</p>`; };
+  render();
+  refreshForecasts(ORDER).then(() => { if (location.hash.startsWith('#/weer')) render(); });
 }
 
 /* ---------- bookings ---------- */
@@ -483,19 +558,28 @@ function vMessage(key) {
 function vMore() {
   setChrome('Meer');
   const L1 = (href, icon, color, t, s, badge) => `<a class="list-link" href="${href}"><div class="bubble" style="background:${color};color:#fff">${ic(icon)}</div><div class="grow"><strong>${t}</strong><span>${s}</span></div>${badge ? `<span class="badge todo">${badge}</span>` : ''}${ic('chevron-right', 'chev')}</a>`;
-  view.innerHTML = `<div class="card">${L1('#/boekingen', 'ticket', 'var(--m-flight)', 'Boekingen', 'Vluchten, hotels, bussen, codes')}${L1('#/todo', 'list-checks', 'var(--todo)', 'Te doen', 'Samen afvinken', openTodoCount())}${L1('#/pakken', 'backpack', 'var(--m-hike)', 'Paklijst', 'Per persoon')}</div>
+  view.innerHTML = `<div class="card">${L1('#/boekingen', 'ticket', 'var(--m-flight)', 'Boekingen', 'Vluchten, hotels, bussen, codes')}${L1('#/todo', 'list-checks', 'var(--todo)', 'Te doen', 'Samen afvinken', openTodoCount())}${L1('#/pakken', 'backpack', 'var(--m-hike)', 'Paklijst', 'Per persoon')}${L1('#/weer', 'cloud-sun', 'var(--m-boat)', 'Weer', 'Gemiddeld en live, per plek')}</div>
     <div class="card">${L1('#/info', 'info', '#e11d48', 'Praktisch', 'Noodnummers, geld, grens, Spaans')}${L1('#/notities', 'notebook-pen', 'var(--m-boat)', 'Notities', 'Gedeeld met elkaar')}${L1('#/instellingen', 'settings', 'var(--m-car)', 'Instellingen', 'Wie ben jij, vergrendelen')}</div>`;
 }
 function vInfo() {
   setChrome('Praktisch', { back: true });
   view.innerHTML = T.info.map(s => `<div class="h-sec">${esc(s.title)}</div><div class="card">${s.items.map(i => `<div class="row" style="padding:8px 0"><div class="grow">${i.label ? `<strong>${esc(i.label)}</strong>` : ''}${i.text ? `<div class="${i.label ? 'small muted' : ''}">${esc(i.text)}</div>` : ''}</div>${i.phone ? `<a class="btn soft" href="${tel(i.phone)}">${ic('phone', 'sm')} ${esc(i.phone)}</a>` : ''}</div>`).join('')}</div>`).join('');
 }
+let packWho = null;
 function vPack() {
   setChrome('Paklijst', { back: true });
-  const me = store.get('me', '');
-  view.innerHTML = `<p class="muted small" style="margin:4px 2px 12px">Paklijst${me ? ' van ' + esc(me) : ''}, alleen op dit toestel.</p><div class="card">${T.packing.map((p, i) => { const on = !!store.get('pack:' + i);
-    return `<label class="check ${on ? 'done' : ''}"><input type="checkbox" data-p="${i}" ${on ? 'checked' : ''}><span>${esc(p)}</span></label>`; }).join('')}</div>`;
-  view.querySelectorAll('[data-p]').forEach(cb => cb.onchange = () => { store.set('pack:' + cb.dataset.p, cb.checked); cb.closest('.check').classList.toggle('done', cb.checked); });
+  const who = packWho || store.get('me') || 'Martine', w = who === 'Thijs' ? 't' : 'm', key = id => `pack:${w}:${id}`;
+  const cats = T.packing.map(c => ({ ...c, items: c.items.filter(i => !i.who || i.who === w) }));
+  const all = cats.flatMap(c => c.items), done = all.filter(i => Sync.get(key(i.id))).length, pct = Math.round(done / all.length * 100);
+  view.innerHTML = `<div class="seg">${['Martine', 'Thijs'].map(n => `<button data-who="${n}" class="${who === n ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="card"><div class="row"><div class="ring" style="--p:${pct}"><div>${pct}%</div></div><div class="grow"><strong style="font-size:18px">${done} van ${all.length} ingepakt</strong>
+    <div class="small muted">Paklijst van ${esc(who)}${Sync.room ? ' · zichtbaar voor jullie allebei' : ''}</div></div></div>
+    <div class="wx-tip" style="margin-top:12px">${ic('circle-alert', 'sm')}<span>Binnenlandse vluchten: ruimbagage max. 15 kg, geen handbagage, alleen een tasje van 3 kg.</span></div></div>` +
+    cats.map(c => { const n = c.items.filter(i => Sync.get(key(i.id))).length;
+      return `<div class="h-sec">${ic(c.icon)} ${esc(c.cat)} <small>${n}/${c.items.length}</small></div><div class="card">${c.note ? `<p class="small muted" style="margin:0 0 6px">${esc(c.note)}</p>` : ''}${c.items.map(i => { const on = !!Sync.get(key(i.id));
+        return `<label class="check ${on ? 'done' : ''}"><input type="checkbox" data-p="${esc(i.id)}" ${on ? 'checked' : ''}><span>${esc(i.t)}${i.note ? `<span class="who">${esc(i.note)}</span>` : ''}</span></label>`; }).join('')}</div>`; }).join('');
+  view.querySelectorAll('[data-who]').forEach(b => b.onclick = () => { packWho = b.dataset.who; vPack(); });
+  view.querySelectorAll('[data-p]').forEach(cb => cb.onchange = () => { Sync.set(key(cb.dataset.p), cb.checked); const y = scrollY; vPack(); scrollTo(0, y); });
 }
 function vNotes() {
   setChrome('Notities', { back: true });
@@ -536,7 +620,7 @@ function route(soft) {
   document.querySelectorAll('.nav a').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   const y = scrollY;
   ({ vandaag: vToday, kaart: () => vMap(b, c), agenda: vAgenda, dag: () => vDay(b), plekken: vPlaces, plek: () => vPlace(b), boekingen: vBookings, boeking: () => vBooking(b),
-     todo: vTodo, bericht: () => vMessage(b), meer: vMore, info: vInfo, pakken: vPack, notities: vNotes, instellingen: vSettings }[a] || vToday)();
+     todo: vTodo, bericht: () => vMessage(b), meer: vMore, info: vInfo, pakken: vPack, weer: vWeather, notities: vNotes, instellingen: vSettings }[a] || vToday)();
   if (soft) scrollTo(0, y); else if (a !== 'agenda') scrollTo(0, 0);
 }
 window.addEventListener('hashchange', () => route());
@@ -553,7 +637,7 @@ window.addEventListener('online', net); window.addEventListener('offline', net);
   }
   try {
     const { key, data } = await unlock();
-    KEY = key; T = data.trip; PL = data.places; RT = data.routes;
+    KEY = key; T = data.trip; PL = data.places; RT = data.routes; CL = data.climate || {};
     const go = () => { route(); Sync.init(); };
     store.get('me') ? go() : askWho(go);
   } catch (e) { setChrome('Argentinië', { hideNav: true }); view.innerHTML = `<div class="card" style="margin-top:40px"><h2>Kan niet laden</h2><p class="muted">${esc(e.message)}</p></div>`; }

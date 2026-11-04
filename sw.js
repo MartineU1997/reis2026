@@ -1,6 +1,6 @@
 /* Offline: de app en alle data worden bij de eerste keer opgeslagen. Met internet wordt op de achtergrond bijgewerkt.
    Kaarttegels die je bekijkt worden apart bewaard, zodat die stukken kaart ook offline werken. */
-const CACHE = 'trip-20261104165620';
+const CACHE = 'trip-20261104172536';
 const TILES = 'tiles-v1';
 const FILES = ['./', 'index.html', 'styles.css', 'app.js', 'config.js', 'data.enc.json', 'manifest.webmanifest', 'icons.svg',
   'vendor/leaflet.js', 'vendor/leaflet.css', 'fonts/jakarta.woff2', 'geo/countries.json',
