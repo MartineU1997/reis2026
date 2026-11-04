@@ -399,7 +399,7 @@ function vStats() {
   const tile = (v, label, icon, color) => `<div class="stat"><div class="stat-ico" style="background:${color}">${ic(icon)}</div><b data-count="${r(v)}">0</b><span>${label}</span></div>`;
   view.innerHTML = `<div class="hero" style="background-image:url(img/paine.webp);min-height:200px"><div class="eyebrow">${ic('route', 'sm')} ${ft('stats')}</div><div class="count" data-count="${r(s.total)}">0</div><h2 style="font-size:20px">${ft('statKm')}</h2><p>${ft('statEarth', { n: (s.total / 40075).toFixed(2).replace('.', LANG === 'en' ? '.' : ',') })}</p></div>
     <div class="stats">${tile(s.km.flight, ft('statFlight'), 'plane', 'var(--m-flight)')}${tile(s.km.bus, ft('statBus'), 'bus', 'var(--m-bus)')}${tile(s.km.hike, ft('statHike'), 'footprints', 'var(--m-hike)')}${tile(s.km.boat, ft('statBoat'), 'ship', 'var(--m-boat)')}
-    ${tile(s.flights, ft('statFlights'), 'plane', '#8b5cf6')}${tile(s.nights, ft('statNights'), 'bed-double', '#0f766e')}${tile(s.beds, ft('statBeds'), 'tent', 'var(--p-paine)')}${tile(23, t('nDays', { n: '' }).trim(), 'calendar-days', 'var(--p-ba)')}</div>`;
+    ${tile(s.flights, ft('statFlights'), 'plane', '#8467ad')}${tile(s.nights, ft('statNights'), 'bed-double', '#3a8b86')}${tile(s.beds, ft('statBeds'), 'tent', 'var(--p-paine)')}${tile(23, t('nDays', { n: '' }).trim(), 'calendar-days', 'var(--p-ba)')}</div>`;
   view.querySelectorAll('[data-count]').forEach(el => { const to = +el.dataset.count, t0 = performance.now(), d = 900; const step = n => { const f = Math.min(1, (n - t0) / d), e = 1 - Math.pow(1 - f, 3); el.textContent = new Intl.NumberFormat('nl-NL').format(Math.round(to * e)); if (f < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); });
 }
 

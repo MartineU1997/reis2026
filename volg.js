@@ -2,7 +2,7 @@
 /* Volg-pagina voor familie. Ouders typen de familiecode; die ontsleutelt de familiesleutel, alleen op hun eigen toestel. */
 const TZ = 'America/Argentina/Buenos_Aires';
 const ORDER = ['ba', 'chalten', 'calafate', 'natales', 'paine', 'mendoza', 'uco'];
-const MODE = { flight: '#6366f1', bus: '#f59e0b', boat: '#06b6d4', car: '#64748b', hike: '#16a34a' };
+const MODE = { flight: '#5a6aa6', bus: '#d0973a', boat: '#3b9396', car: '#80766c', hike: '#5c8c4c' };
 const MICON = { flight: 'plane', bus: 'bus', boat: 'ship', transfer: 'car-taxi-front', car: 'car-taxi-front', hike: 'footprints' };
 const S = {
   nl: {

@@ -236,7 +236,7 @@ function tlItem(it) {
 const timeline = d => `<div class="tl">${d.items.map(tlItem).join('')}</div>`;
 function stayCard(s, label = t('sleep')) {
   if (!s) return '';
-  return `<div class="card stay-card">${s.photo ? `<a href="#/boeking/${esc(s.id)}" class="stay-img" style="background-image:url(${esc(s.photo)})"></a>` : ''}<div class="row"><div class="bubble" style="background:#0f766e;color:#fff;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex:none">${ic('bed-double')}</div>
+  return `<div class="card stay-card">${s.photo ? `<a href="#/boeking/${esc(s.id)}" class="stay-img" style="background-image:url(${esc(s.photo)})"></a>` : ''}<div class="row"><div class="bubble" style="background:#3a8b86;color:#fff;width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex:none">${ic('bed-double')}</div>
     <a class="grow" href="#/boeking/${esc(s.id)}" style="color:inherit"><div class="tiny muted" style="font-weight:700;text-transform:uppercase;letter-spacing:.04em">${esc(label)}</div><strong style="font-size:16px">${esc(s.name)}</strong>
     <div class="small muted">${esc(s.place)}${s.checkin ? ' · ' + t('checkinShort') + ' ' + esc(s.checkin) : ''}</div></a>
     <a class="btn soft round" href="${mapsUrl(s.address)}" target="_blank" rel="noopener" aria-label="${t('route')}">${ic('navigation')}</a></div></div>`;
@@ -260,11 +260,11 @@ function stageScroller() {
 function tiles() {
   const open = openTodoCount();
   const tile = (href, icon, color, label, badge) => `<a class="tile" href="${href}"><div class="bubble" style="background:${color};color:#fff">${ic(icon)}</div>${label}${badge ? `<span class="badge-n">${badge}</span>` : ''}</a>`;
-  return `<div class="tiles">${tile('#/boekingen', 'ticket', 'var(--m-flight)', t('tileBookings'))}${tile('#/todo', 'list-checks', 'var(--todo)', t('tileTodo'), open)}${tile('#/weer', 'cloud-sun', 'var(--m-boat)', t('tileWeather'))}${tile('#/info', 'phone', '#e11d48', t('tileEmergency'))}${window.FX_TILES ? FX_TILES() : ''}</div>`;
+  return `<div class="tiles">${tile('#/boekingen', 'ticket', 'var(--m-flight)', t('tileBookings'))}${tile('#/todo', 'list-checks', 'var(--todo)', t('tileTodo'), open)}${tile('#/weer', 'cloud-sun', 'var(--m-boat)', t('tileWeather'))}${tile('#/info', 'phone', '#b8433a', t('tileEmergency'))}${window.FX_TILES ? FX_TILES() : ''}</div>`;
 }
 function extrasRow() {
-  return `<div class="duo"><a class="duo-card" href="#/leesvoer" style="background-image:linear-gradient(160deg,rgba(15,23,42,.15),rgba(15,23,42,.8)),url(img/calafate.webp)">${ic('notebook-pen')}<strong>${t('reading')}</strong><span>${t('readingSub')}</span></a>
-    <a class="duo-card" href="#/spaans" style="background-image:linear-gradient(160deg,rgba(15,23,42,.15),rgba(15,23,42,.8)),url(img/buenosaires.webp)">${ic('music')}<strong>${t('spanish')}</strong><span>${t('spanishSub')}</span></a></div>`;
+  return `<div class="duo"><a class="duo-card" href="#/leesvoer" style="background-image:linear-gradient(160deg,rgba(34,20,12,.15),rgba(34,20,12,.8)),url(img/calafate.webp)">${ic('notebook-pen')}<strong>${t('reading')}</strong><span>${t('readingSub')}</span></a>
+    <a class="duo-card" href="#/spaans" style="background-image:linear-gradient(160deg,rgba(34,20,12,.15),rgba(34,20,12,.8)),url(img/buenosaires.webp)">${ic('music')}<strong>${t('spanish')}</strong><span>${t('spanishSub')}</span></a></div>`;
 }
 function vToday() {
   setChrome(t('today'));
@@ -417,7 +417,7 @@ function vPlace(id) {
 
 /* ================= kaart ================= */
 let MAP = null, PLAYING = null;
-const MODE = () => ({ flight: { c: '#6366f1', w: 3, label: t('mFlight'), icon: 'plane' }, bus: { c: '#f59e0b', w: 4.5, label: t('mBus'), icon: 'bus' }, boat: { c: '#06b6d4', w: 4.5, label: t('mBoat'), icon: 'ship' }, car: { c: '#64748b', w: 3.5, label: t('mCar'), icon: 'car-taxi-front' }, hike: { c: '#16a34a', w: 4.5, label: t('mHike'), icon: 'footprints' } });
+const MODE = () => ({ flight: { c: '#5a6aa6', w: 3, label: t('mFlight'), icon: 'plane' }, bus: { c: '#d0973a', w: 4.5, label: t('mBus'), icon: 'bus' }, boat: { c: '#3b9396', w: 4.5, label: t('mBoat'), icon: 'ship' }, car: { c: '#80766c', w: 3.5, label: t('mCar'), icon: 'car-taxi-front' }, hike: { c: '#5c8c4c', w: 4.5, label: t('mHike'), icon: 'footprints' } });
 const PLAY = ['t-eze-in', 'ar1', 'bus-chalten', 'bus-calafate', 'bus-natales', 'bus-pudeto', 'boat-pehoe', 'w2', 'w3', 'w4', 'w5', 'w5b', 'shuttle-amarga', 'bus-natales-back', 'bus-calafate-back', 'ar2a', 'ar2b', 't-mdz-in', 't-uco', 't-uco-mdz', 'ar3'];
 const legInfo = id => { const x = byId(id) || byId(id.replace(/[ab]$/, '')); if (x) return { title: x.title, date: x.date, link: '#/boeking/' + x.id }; const h = hike(id) || hike(id.replace(/b$/, '')); const d = h && T.days.find(dd => dd.items.some(it => it.hike === h.id)); return h ? { title: h.name, date: d?.date, link: d ? '#/dag/' + d.date : null } : null; };
 const isDark = () => document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -440,7 +440,7 @@ function vMap(focus, tipId) {
   const map = MAP = L.map('map', { zoomControl: false, attributionControl: true, minZoom: 3, maxBounds: [[-60, -95], [-15, -40]], maxBoundsViscosity: 0.8 }).setView([-42, -66], 4);
   map.createPane('land'); map.getPane('land').style.zIndex = 150;
   fetch('geo/countries.json').then(r => r.json()).then(geo => L.geoJSON(geo, { pane: 'land', interactive: false,
-    style: f => ({ color: isDark() ? '#334155' : '#b8c4d4', weight: 1, fillColor: f.properties.main ? (isDark() ? '#1e2733' : '#fbfaf7') : (isDark() ? '#161d27' : '#eef0f2'), fillOpacity: 1 }) }).addTo(map)).catch(() => {});
+    style: f => ({ color: isDark() ? '#4a3f35' : '#c9b9a5', weight: 1, fillColor: f.properties.main ? (isDark() ? '#2a241e' : '#fbf6ee') : (isDark() ? '#211c17' : '#efe7da'), fillOpacity: 1 }) }).addTo(map)).catch(() => {});
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', className: 'osm-tiles' }).addTo(map);
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const mk = (ll, html, cls, size, bg, anchor) => L.marker(ll, { icon: L.divIcon({ className: '', html: `<div class="${cls}" style="--c:${bg}">${html}</div>`, iconSize: [size, size], iconAnchor: anchor || [size / 2, size / 2] }) });
@@ -449,7 +449,7 @@ function vMap(focus, tipId) {
     const m = M[l.mode]; if (!m) continue;
     const g = modeLayers[l.mode], info = legInfo(l.id);
     const pop = `<strong>${ic(m.icon, 'sm')} ${esc(info?.title || m.label)}</strong>${info?.date ? `<div class="muted">${esc(fmt(info.date))}</div>` : ''}${info?.link ? `<a class="btn" href="${info.link}">${t('details')}</a>` : ''}`;
-    if (l.mode !== 'flight') g.addLayer(L.polyline(l.line, { color: isDark() ? '#0b1220' : '#fff', weight: m.w + 5, opacity: 0.9, interactive: false, className: 'casing' }));
+    if (l.mode !== 'flight') g.addLayer(L.polyline(l.line, { color: isDark() ? '#17130f' : '#fff', weight: m.w + 5, opacity: 0.9, interactive: false, className: 'casing' }));
     L.polyline(l.line, { color: m.c, weight: m.w, opacity: 0.95, lineCap: 'round', className: `route r-${l.mode}` }).addTo(g).bindPopup(pop);
     if (l.mode !== 'flight') L.polyline(l.line, { color: '#fff', weight: Math.max(1.5, m.w - 2.5), opacity: 0.85, interactive: false, className: `flow f-${l.mode}` }).addTo(g);
     if (!['w5', 'w5b', 'shuttle-amarga', 'boat-pehoe', 'bus-natales-back', 'bus-calafate-back', 't-uco-mdz'].includes(l.id)) {
@@ -465,13 +465,13 @@ function vMap(focus, tipId) {
       .bindPopup(`<div class="pop-img" style="background-image:url(${img(p)})"></div><strong>${i + 1}. ${esc(p.name)}</strong><div class="muted">${esc(range(p.dates[0], p.dates[1]))}</div><div>${esc(p.tagline)}</div><a class="btn" href="#/plek/${id}">${t('viewGuide')}</a>`, { maxWidth: 260 });
   });
   for (const s of T.stays) {
-    const pid = T.days.find(d => d.sleep === s.id)?.placeId, c = css(`--p-${pid}`) || '#0f766e';
+    const pid = T.days.find(d => d.sleep === s.id)?.placeId, c = css(`--p-${pid}`) || '#3a8b86';
     mk(s.ll, `<span>${ic(['painegrande', 'frances', 'chileno'].includes(s.id) ? 'tent' : 'bed-double')}</span>`, 'stay-pin', 34, c, [17, 34]).setZIndexOffset(1200).addTo(detail)
       .bindTooltip(esc(s.name), { permanent: true, direction: 'right', offset: [8, -18], className: 'stay-label' })
       .bindPopup(`${s.photo ? `<div class="pop-img" style="background-image:url(${s.photo})"></div>` : ''}<strong>${esc(s.name)}</strong><div class="muted">${esc(range(s.in, s.out))}</div><a class="btn" href="#/boeking/${s.id}">${t('details')}</a>`, { maxWidth: 260 });
   }
   const tipLayer = L.layerGroup(), tipMarkers = {};
-  for (const p of PL) for (const [list, color, kind] of [['highlights', '#2f6fd6', 'hl'], ['gems', '#8b5cf6', 'gem'], ['food', '#ea580c', 'food']]) for (const it of p[list]) {
+  for (const p of PL) for (const [list, color, kind] of [['highlights', '#b0502b', 'hl'], ['gems', '#8467ad', 'gem'], ['food', '#c4553b', 'food']]) for (const it of p[list]) {
     if (!it.ll) continue;
     const m = mk(it.ll, ic(it.icon || { hl: 'star', gem: 'gem', food: 'utensils' }[kind]), 'tip-marker', 26, color);
     m.bindPopup(`${it.photo ? `<div class="pop-img" style="background-image:url(photos/${esc(it.photo.local)})"></div>` : ''}<span class="badge ${kind === 'gem' ? 'gem' : 'plain'}">${{ hl: t('kHl'), gem: t('kGem'), food: t('kFood') }[kind]}</span><div style="margin-top:6px"><strong>${esc(it.name)}</strong></div><div>${esc(it.text)}</div>
@@ -750,7 +750,7 @@ function vMore() {
   view.innerHTML = `<div class="card">${row('#/boekingen', 'ticket', 'var(--m-flight)', t('bookings'), t('bookingsSub'))}${row('#/todo', 'list-checks', 'var(--todo)', t('todo'), t('todoSub'), openTodoCount())}${row('#/pakken', 'backpack', 'var(--m-hike)', t('packing'), t('packingSub'))}${row('#/weer', 'cloud-sun', 'var(--m-boat)', t('weather'), t('weatherSub'))}</div>
     ${window.FX_MORE ? FX_MORE() : ''}
     <div class="card">${row('#/leesvoer', 'notebook-pen', 'var(--p-ba)', t('reading'), t('readingSub'))}${row('#/spaans', 'volume-2', 'var(--p-chalten)', t('spanish'), t('spanishSub'))}</div>
-    <div class="card">${row('#/info', 'info', '#e11d48', t('info'), t('infoSub'))}${row('#/notities', 'notebook-pen', 'var(--m-boat)', t('notes'), t('notesSub'))}${row('#/instellingen', 'settings', 'var(--m-car)', t('settings'), t('settingsSub'))}</div>`;
+    <div class="card">${row('#/info', 'info', '#b8433a', t('info'), t('infoSub'))}${row('#/notities', 'notebook-pen', 'var(--m-boat)', t('notes'), t('notesSub'))}${row('#/instellingen', 'settings', 'var(--m-car)', t('settings'), t('settingsSub'))}</div>`;
 }
 function vInfo() {
   setChrome(t('info'), { back: true });
