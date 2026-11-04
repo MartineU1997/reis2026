@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Volg Martine & Thijs</title>
 <meta name="description" content="Waar zijn Martine en Thijs? Volg hun reis door Argentinië en Chili.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Martine & Thijs">
+<meta property="og:title" content="Volg Martine & Thijs door Argentinië en Chili">
+<meta property="og:description" content="29 nov – 21 dec 2026 · Waar zijn ze nu? Live route, weer en dagboek. Alleen voor familie.">
+<meta property="og:url" content="https://martineu1997.github.io/reis2026/volg">
+<meta property="og:image" content="https://martineu1997.github.io/reis2026/og-volg.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Buenos Aires, Fitz Roy en Torres del Paine">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0c0f14">
@@ -120,6 +130,56 @@ h2.sec small { margin-left: auto; font-family: "Jakarta", sans-serif; font-size:
 .install { display: flex; gap: 12px; align-items: flex-start; background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(6,182,212,.12)); box-shadow: none; }
 .install button { margin-left: auto; border: 0; background: none; color: var(--muted); font: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
 footer { text-align: center; color: var(--muted); font-size: 12.5px; margin-top: 40px; }
+/* aftellen */
+.cd { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 18px; max-width: 360px; margin-left: 0; }
+.cd div { text-align: center; padding: 10px 0 8px; border-radius: 16px; background: rgba(255,255,255,.14); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.cd b { display: block; font-size: 26px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.cd span { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; opacity: .8; margin-top: 4px; }
+/* etappes */
+.segs { display: flex; gap: 4px; margin: 16px 0 8px; height: 10px; }
+.seg { position: relative; border-radius: 99px; background: color-mix(in srgb, var(--c) 22%, transparent); overflow: hidden; }
+.seg i { position: absolute; inset: 0 auto 0 0; background: var(--c); border-radius: inherit; transition: width 1.2s cubic-bezier(.2,.8,.2,1); }
+.seg.now { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c); }
+.segdates { display: flex; justify-content: space-between; }
+.strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -16px 8px; padding: 8px 16px 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.strip::-webkit-scrollbar { display: none; }
+.stage { flex: none; width: 150px; height: 190px; scroll-snap-align: start; scroll-margin-left: 16px; position: relative; border: 0; padding: 0; border-radius: 22px; overflow: hidden; background: #0c0f14 center/cover no-repeat; color: #fff; text-align: left; font: inherit; cursor: pointer; box-shadow: var(--shadow); transition: transform .2s; }
+.stage:active { transform: scale(.97); }
+.stage::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,10,20,0) 35%, rgba(5,10,20,.85) 100%); }
+.stage.done::after { content: ""; position: absolute; inset: 0; background: rgba(12,15,20,.25); }
+.stage.now { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--c), var(--shadow); }
+.stage-n { position: absolute; top: 10px; left: 10px; z-index: 1; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; background: var(--c); box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.stage-now { position: absolute; top: 12px; right: 10px; z-index: 1; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; padding: 4px 9px; border-radius: 99px; background: #fff; color: #121620; }
+.stage-b { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 1; display: block; }
+.stage-b strong { display: block; font-size: 16px; line-height: 1.15; letter-spacing: -0.01em; margin: 2px 0 3px; }
+.stage-b span:last-child { font-size: 11.5px; font-weight: 600; opacity: .85; }
+.stage-f { font-size: 15px; }
+/* programma inklappen */
+.days li.more { display: none; }
+.days.all li.more { display: flex; }
+.more-btn { display: flex; width: 100%; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; padding: 12px; border: 0; border-radius: 14px; background: var(--surface-2); color: var(--text); font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
+.more-btn .ico { transition: transform .25s; }
+.more-btn.open .ico { transform: rotate(180deg); }
+/* familiecode */
+.gate { min-height: 100vh; min-height: 100svh; display: flex; align-items: flex-end; justify-content: center; padding: calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 20px); background: #0c0f14 center/cover no-repeat; position: relative; }
+.gate::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,10,20,.1) 0%, rgba(5,10,20,.35) 45%, rgba(5,10,20,.9) 100%); }
+.gate-card { position: relative; width: 100%; max-width: 420px; color: #fff; text-align: center; padding: 28px 22px 22px; border-radius: 30px; background: rgba(20,24,34,.42); -webkit-backdrop-filter: blur(22px) saturate(1.6); backdrop-filter: blur(22px) saturate(1.6); box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), 0 30px 60px -20px rgba(0,0,0,.6); animation: rise .7s cubic-bezier(.2,.8,.2,1) both; }
+@media (min-height: 700px) { .gate { align-items: center; } }
+@keyframes rise { from { opacity: 0; transform: translateY(24px) scale(.98); } }
+.gate-lang { position: absolute; top: 14px; right: 14px; }
+.gate-ico { width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 18px; display: grid; place-items: center; background: linear-gradient(140deg, var(--p-chalten), var(--p-ba)); box-shadow: 0 10px 24px -8px rgba(239,108,90,.7); }
+.gate-ico .ico { width: 26px; height: 26px; color: #fff; }
+.gate h1 { font-family: var(--serif); font-size: 32px; line-height: 1.05; margin: 0 0 8px; letter-spacing: -0.02em; }
+.gate .muted { color: rgba(255,255,255,.78); font-size: 15px; margin: 0 0 18px; }
+.gate input { width: 100%; font: inherit; font-size: 20px; font-weight: 700; text-align: center; letter-spacing: .04em; padding: 15px 14px; border-radius: 16px; border: 0; color: #121620; background: #fff; outline: none; box-shadow: 0 0 0 0 rgba(47,111,214,.5); transition: box-shadow .2s; }
+.gate input:focus { box-shadow: 0 0 0 4px rgba(255,255,255,.35); }
+.gate input::placeholder { color: #98a2b3; font-weight: 600; letter-spacing: 0; }
+.gate-err { min-height: 20px; margin: 8px 0 6px; font-size: 14px; font-weight: 650; color: #fecaca; }
+.gate-btn { width: 100%; font: inherit; font-size: 17px; font-weight: 800; padding: 15px; border: 0; border-radius: 16px; color: #fff; cursor: pointer; background: linear-gradient(135deg, #ef6c5a, #a855f7); box-shadow: 0 12px 26px -10px rgba(168,85,247,.8); }
+.gate-btn:disabled { opacity: .7; }
+.shake { animation: shake .4s; }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.linkbtn { border: 0; background: none; font: inherit; color: var(--muted); text-decoration: underline; cursor: pointer; margin-top: 10px; font-size: 12.5px; }
 .lock { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 30px; }
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
 .reveal.in { opacity: 1; transform: none; }
