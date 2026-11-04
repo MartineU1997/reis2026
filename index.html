@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Argentinië</title>
+<meta name="description" content="Reis-app Martine & Thijs, Argentinië en Chili 2026">
+<meta name="theme-color" content="#f4f1ec" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0f14" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Argentinië">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preload" href="fonts/jakarta.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar" id="topbar">
+  <button class="icon-btn" id="back" aria-label="Terug" hidden><svg class="ico"><use href="#i-chevron-left"/></svg></button>
+  <h1 id="title">Argentinië</h1>
+  <span class="pill" id="offline" hidden>offline</span>
+  <span class="sync-dot" id="syncdot" title="Synchronisatie" hidden></span>
+</header>
+<main id="view" tabindex="-1"></main>
+<nav class="nav" id="nav" aria-label="Hoofdmenu">
+  <a href="#/vandaag" data-tab="vandaag"><svg class="ico"><use href="#i-sun"/></svg><span>Vandaag</span></a>
+  <a href="#/kaart" data-tab="kaart"><svg class="ico"><use href="#i-map"/></svg><span>Kaart</span></a>
+  <a href="#/agenda" data-tab="agenda"><svg class="ico"><use href="#i-calendar-days"/></svg><span>Agenda</span></a>
+  <a href="#/plekken" data-tab="plekken"><svg class="ico"><use href="#i-compass"/></svg><span>Plekken</span></a>
+  <a href="#/meer" data-tab="meer"><svg class="ico"><use href="#i-ellipsis"/></svg><span>Meer</span></a>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="vendor/leaflet.js" defer></script>
+<script src="config.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>

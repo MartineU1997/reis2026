@@ -1,0 +1,3 @@
+Reis-app Argentinië & Chili 2026 (privé). Reisgegevens staan versleuteld in data.enc.json.
+Gebruikt: Leaflet (BSD-2), Lucide-iconen (ISC), Plus Jakarta Sans (SIL OFL 1.1),
+kaart © OpenStreetMap-bijdragers (ODbL), landsgrenzen Natural Earth (publiek domein).
