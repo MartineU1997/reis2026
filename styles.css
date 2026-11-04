@@ -401,3 +401,80 @@ textarea { width: 100%; min-height: 50vh; font: inherit; color: inherit; backgro
 .wact span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
 .wbar.one { font-size: 9.5px; padding: 4px 3px 4px 4px; border-left-width: 2px; text-overflow: clip; letter-spacing: -0.02em; }
 .wact span { word-break: normal; overflow-wrap: normal; hyphens: auto; }
+
+/* ---------- aftelklok ---------- */
+.countdown { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0 6px; }
+.countdown > div { background: rgba(255,255,255,.16); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 16px; padding: 10px 4px 8px; text-align: center; box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.countdown b { display: block; font-size: 34px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.countdown span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; opacity: .85; }
+.tickanim { animation: tick .35s ease; }
+@keyframes tick { from { transform: translateY(-4px); opacity: .4; } to { transform: none; opacity: 1; } }
+
+/* ---------- magazine (leesvoer) ---------- */
+.serif { font-family: "New York", ui-serif, "Iowan Old Style", Charter, Georgia, serif; }
+.mz-mast { text-align: center; padding: 14px 0 18px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+.mz-logo { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.mz-sub { font-size: 13px; color: var(--muted); margin-top: 6px; font-weight: 600; }
+.mz-feature { display: block; color: var(--text); margin-bottom: 22px; }
+.mz-cover { aspect-ratio: 16/10; border-radius: 18px; background: var(--surface-2) center/cover; box-shadow: var(--shadow); }
+.mz-body { padding: 14px 2px 0; }
+.mz-body h2 { font-size: 28px; line-height: 1.15; margin: 6px 0 8px; letter-spacing: -0.01em; }
+.mz-body p { margin: 0 0 8px; color: var(--muted); font-size: 16px; }
+.mz-kicker { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
+.mz-meta { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.mz-list { border-top: 1px solid var(--line); }
+.mz-row { display: flex; gap: 14px; align-items: flex-start; padding: 16px 2px; border-bottom: 1px solid var(--line); color: var(--text); }
+.mz-row h3 { font-size: 19px; line-height: 1.2; margin: 0 0 4px; }
+.mz-row p { margin: 0 0 6px; font-size: 14px; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mz-thumb { width: 92px; height: 92px; border-radius: 14px; flex: none; background: var(--surface-2) center/cover; }
+.mz-article { background: var(--surface); margin: 0 -16px 18px; padding: 22px 20px 26px; }
+.mz-article h1 { font-size: 34px; line-height: 1.1; margin: 8px 0 10px; letter-spacing: -0.015em; }
+.mz-dek { font-size: 19px; line-height: 1.45; color: var(--muted); margin: 0 0 16px; }
+.mz-byline { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 18px; font-size: 14px; }
+.mz-avatar { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(140deg, var(--p-ba), var(--p-calafate)); }
+.mz-fig { margin: 22px -20px; }
+.mz-fig img { width: 100%; display: block; aspect-ratio: 3/2; object-fit: cover; background: var(--surface-2); }
+.mz-fig figcaption { font-size: 12px; color: var(--muted); padding: 6px 20px 0; }
+.mz-fig figcaption a { color: inherit; text-decoration: underline; }
+.mz-hero { margin-top: 0; }
+.mz-text { font-family: "New York", ui-serif, "Iowan Old Style", Charter, Georgia, serif; font-size: 19px; line-height: 1.7; }
+.mz-text h3 { font-size: 23px; line-height: 1.25; margin: 30px 0 6px; }
+.mz-text p { margin: 0 0 16px; }
+.mz-text > p:first-of-type::first-letter { float: left; font-size: 62px; line-height: .9; font-weight: 700; padding: 6px 8px 0 0; color: var(--accent); }
+.mz-quote { margin: 26px 0; padding: 4px 0 4px 18px; border-left: 4px solid var(--sun); font-size: 24px; line-height: 1.35; font-style: italic; font-weight: 600; }
+.mz-facts { margin: 26px 0 18px; padding: 18px; border-radius: 18px; background: var(--surface-2); }
+.mz-facts h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 21px; }
+.mz-facts h3 .ico { color: var(--sun); }
+.mz-fact { font-size: 15.5px; line-height: 1.5; padding: 10px 0; border-top: 1px solid var(--line); }
+.mz-fact:first-of-type { border-top: 0; }
+
+/* ---------- kaart: routes, pinnen, animatie ---------- */
+.leaflet-overlay-pane path.route { transition: opacity .3s; }
+.leaflet-overlay-pane path.r-flight { stroke-dasharray: 1 9; stroke-linecap: round; stroke-width: 4px; animation: flow 1.4s linear infinite; }
+.leaflet-overlay-pane path.flow { stroke-dasharray: 3 14; animation: flow 1.6s linear infinite; }
+.leaflet-overlay-pane path.f-hike { stroke-dasharray: 1 8; stroke-linecap: round; animation-duration: 2.4s; }
+.leaflet-overlay-pane path.f-boat { stroke-dasharray: 6 8; }
+@keyframes flow { to { stroke-dashoffset: -34; } }
+@media (prefers-reduced-motion: reduce) { .leaflet-overlay-pane path { animation: none !important; } }
+.playing .leaflet-overlay-pane path.route, .playing .leaflet-overlay-pane path.flow, .playing .leaflet-overlay-pane path.casing { opacity: .18; }
+.playing .mode-badge { opacity: .3; }
+.leaflet-overlay-pane path.trail { filter: drop-shadow(0 0 6px rgba(255,255,255,.9)); }
+.mode-badge { width: 26px; height: 26px; border-radius: 50%; background: var(--c); color: #fff; display: grid; place-items: center; border: 2.5px solid #fff; box-shadow: 0 3px 10px rgba(0,0,0,.25); }
+.mode-badge svg { width: 13px; height: 13px; }
+.stop-marker { background: var(--c); }
+.tip-marker { background: var(--c); }
+.stay-pin { width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--c); border: 3px solid #fff; box-shadow: 0 6px 14px rgba(0,0,0,.3); display: grid; place-items: center; }
+.stay-pin span { transform: rotate(45deg); color: #fff; display: grid; place-items: center; }
+.stay-pin svg { width: 15px; height: 15px; }
+.leaflet-tooltip.stay-label { display: none; background: var(--surface); color: var(--text); border: 0; border-radius: 10px; box-shadow: var(--shadow); font: 700 12px "Jakarta", sans-serif; padding: 4px 8px; }
+.leaflet-tooltip.stay-label::before { display: none; }
+.labels .leaflet-tooltip.stay-label { display: block; }
+.mover { width: 36px; height: 36px; border-radius: 50%; background: var(--c); color: #fff; display: grid; place-items: center; border: 3px solid #fff; box-shadow: 0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 6px 16px rgba(0,0,0,.35); animation: pulse 1.2s ease-in-out infinite; }
+.mover svg { width: 17px; height: 17px; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--c) 10%, transparent), 0 6px 16px rgba(0,0,0,.35); } }
+.chip.play { background: linear-gradient(135deg, #6366f1, #06b6d4); color: #fff; }
+.chip.play.on { background: var(--text); color: var(--bg); }
+.play-cap { display: flex; align-items: center; gap: 10px; margin-top: 4px; padding: 10px 14px; border-radius: 16px; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); width: max-content; max-width: 100%; }
+.play-cap[hidden] { display: none; }
+.play-cap .mi { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: #fff; flex: none; }
+.play-cap strong { font-size: 14px; }

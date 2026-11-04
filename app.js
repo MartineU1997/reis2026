@@ -18,7 +18,7 @@ const ic = (n, cls = '') => `<svg class="ico ${cls}"><use href="#i-${n}"/></svg>
 const LANGS = { nl: 'Nederlands', en: 'English', es: 'Español' };
 let LANG = store.get('lang') || 'nl';
 const t = (k, v = {}) => String((I18N[LANG] || I18N.nl)[k] ?? I18N.nl[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
-const L = o => o && typeof o === 'object' ? (o[LANG] ?? o.nl ?? o.en ?? '') : (o ?? '');
+const Lx = o => o && typeof o === 'object' ? (o[LANG] ?? o.nl ?? o.en ?? '') : (o ?? '');
 document.documentElement.lang = LANG;
 
 let BASE = null, T = null, PL = [], RT = null, CL = {}, AR = [], PH = null, KEY = null;
@@ -272,7 +272,7 @@ function vToday() {
   if (td < start) {
     const n = dayDiff(start, td);
     h += `<div class="hero tall" style="background-image:url(img/paine.webp)"><div class="eyebrow">${ic('plane', 'sm')} ${t('departs', { d: esc(fmt(start, true)) })}</div>
-      <div class="count">${n}</div><h2>${n === 1 ? t('dayToGo') : t('daysToGo')}</h2>
+      <div class="countdown" id="cd">${['cdDays', 'cdHours', 'cdMin', 'cdSec'].map(k => `<div><b data-u="${k}">–</b><span>${t(k)}</span></div>`).join('')}</div><h2 style="font-size:20px">${t('untilDeparture')}</h2>
       <div class="glass-row"><span class="glass">${ic('calendar-days', 'sm')} ${t('nDays', { n: 23 })}</span><span class="glass">${ic('map-pin', 'sm')} ${t('nPlaces', { n: 7 })}</span><span class="glass">${ic('flag', 'sm')} ${t('nCountries', { n: 2 })}</span></div></div>`;
     h += tiles() + extrasRow();
     h += `<div class="h-sec">${ic('route')} ${t('yourRoute')} <small><a href="#/kaart">${t('mapLink')}</a></small></div>` + stageScroller();
@@ -301,6 +301,20 @@ function vToday() {
     h += extrasRow();
   }
   view.innerHTML = h;
+  startCountdown();
+}
+const DEPART = new Date('2026-11-29T07:10:00+01:00');
+let cdTimer = null;
+function startCountdown() {
+  clearInterval(cdTimer);
+  const el = $('#cd'); if (!el) return;
+  const tick = () => {
+    if (!document.body.contains(el)) return clearInterval(cdTimer);
+    let s = Math.max(0, Math.floor((DEPART - Date.now()) / 1000));
+    const v = { cdDays: Math.floor(s / 86400), cdHours: Math.floor(s / 3600) % 24, cdMin: Math.floor(s / 60) % 60, cdSec: s % 60 };
+    for (const [k, n] of Object.entries(v)) { const b = el.querySelector(`[data-u=${k}]`); const txt = k === 'cdDays' ? String(n) : String(n).padStart(2, '0'); if (b.textContent !== txt) { b.textContent = txt; b.classList.remove('tickanim'); void b.offsetWidth; b.classList.add('tickanim'); } }
+  };
+  tick(); cdTimer = setInterval(tick, 1000);
 }
 
 /* ================= agenda ================= */
@@ -401,50 +415,59 @@ function vPlace(id) {
 }
 
 /* ================= kaart ================= */
-let MAP = null;
-const MODE = () => ({ flight: { c: '#6366f1', w: 2.5, dash: '6 7', label: t('mFlight'), icon: 'plane' }, bus: { c: '#f59e0b', w: 4, label: t('mBus'), icon: 'bus' }, boat: { c: '#06b6d4', w: 4, dash: '2 8', label: t('mBoat'), icon: 'ship' }, car: { c: '#64748b', w: 3, label: t('mCar'), icon: 'car-taxi-front' }, hike: { c: '#16a34a', w: 4, label: t('mHike'), icon: 'footprints' } });
+let MAP = null, PLAYING = null;
+const MODE = () => ({ flight: { c: '#6366f1', w: 3, label: t('mFlight'), icon: 'plane' }, bus: { c: '#f59e0b', w: 4.5, label: t('mBus'), icon: 'bus' }, boat: { c: '#06b6d4', w: 4.5, label: t('mBoat'), icon: 'ship' }, car: { c: '#64748b', w: 3.5, label: t('mCar'), icon: 'car-taxi-front' }, hike: { c: '#16a34a', w: 4.5, label: t('mHike'), icon: 'footprints' } });
+const PLAY = ['t-eze-in', 'ar1', 'bus-chalten', 'bus-calafate', 'bus-natales', 'bus-pudeto', 'boat-pehoe', 'w2', 'w3', 'w4', 'w5', 'w5b', 'shuttle-amarga', 'bus-natales-back', 'bus-calafate-back', 'ar2a', 'ar2b', 't-mdz-in', 't-uco', 't-uco-mdz', 'ar3'];
+const legInfo = id => { const x = byId(id) || byId(id.replace(/[ab]$/, '')); if (x) return { title: x.title, date: x.date, link: '#/boeking/' + x.id }; const h = hike(id) || hike(id.replace(/b$/, '')); const d = h && T.days.find(dd => dd.items.some(it => it.hike === h.id)); return h ? { title: h.name, date: d?.date, link: d ? '#/dag/' + d.date : null } : null; };
 const isDark = () => document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
 let mapTips = store.get('mapTips', true);
 const mapModes = store.get('mapModes', {});
 function vMap(focus, tipId) {
   setChrome(t('navMap'), { full: true, hideBar: true });
+  if (PLAYING) PLAYING.stop = true;
   const M = MODE();
   view.innerHTML = `<div class="mapwrap"><div id="map"></div></div>
     <div class="map-top"><div class="chips">
+      <button class="chip play" id="playBtn">${ic('route', 'sm')} ${t('playRoute')}</button>
       <button class="chip ${mapTips ? 'on' : ''}" id="tipsBtn">${ic('sparkles', 'sm')} ${t('tips')}</button>
-      <button class="chip" id="allBtn">${ic('map', 'sm')} ${t('southAmerica')}</button>
-      <button class="chip" id="worldBtn">${ic('plane', 'sm')} ${t('wholeTrip')}</button>
       ${Object.entries(M).map(([k, m]) => `<button class="chip mode ${mapModes[k] === false ? 'off' : ''}" data-mode="${k}"><span class="mi" style="background:${m.c}">${ic(m.icon)}</span>${m.label}</button>`).join('')}
-    </div></div>
-    <div class="map-bottom"><div class="hscroll">${ORDER.map((id, i) => { const p = place(id); return `<button class="mstage" data-fly="${id}"><div class="thumb" style="background-image:url(${img(p)})"></div><div style="text-align:left"><strong>${i + 1}. ${esc(p.name)}</strong><span>${esc(range(p.dates[0], p.dates[1]))}</span></div></button>`; }).join('')}</div></div>`;
+    </div><div class="play-cap" id="playCap" hidden></div></div>
+    <div class="map-bottom"><div class="hscroll"><button class="mstage" id="allBtn"><div class="thumb" style="background:linear-gradient(140deg,var(--p-ba),var(--p-paine));display:grid;place-items:center;color:#fff">${ic('map')}</div><div style="text-align:left"><strong>${t('southAmerica')}</strong><span>${t('nDays', { n: 23 })}</span></div></button>${ORDER.map((id, i) => { const p = place(id); return `<button class="mstage" data-fly="${id}"><div class="thumb" style="background-image:url(${img(p)})"></div><div style="text-align:left"><strong>${i + 1}. ${esc(p.name)}</strong><span>${esc(range(p.dates[0], p.dates[1]))}</span></div></button>`; }).join('')}</div></div>`;
   if (!window.L) { $('#map').innerHTML = `<div class="card" style="margin:120px 16px">${t('mapFailed')}</div>`; return; }
   if (MAP) { MAP.remove(); MAP = null; }
-  const map = MAP = L.map('map', { zoomControl: false, attributionControl: true, worldCopyJump: false }).setView([-42, -66], 4);
+  const legs = RT.legs.filter(l => !l.intl);
+  const map = MAP = L.map('map', { zoomControl: false, attributionControl: true, minZoom: 3, maxBounds: [[-60, -95], [-15, -40]], maxBoundsViscosity: 0.8 }).setView([-42, -66], 4);
   map.createPane('land'); map.getPane('land').style.zIndex = 150;
   fetch('geo/countries.json').then(r => r.json()).then(geo => L.geoJSON(geo, { pane: 'land', interactive: false,
     style: f => ({ color: isDark() ? '#334155' : '#b8c4d4', weight: 1, fillColor: f.properties.main ? (isDark() ? '#1e2733' : '#fbfaf7') : (isDark() ? '#161d27' : '#eef0f2'), fillOpacity: 1 }) }).addTo(map)).catch(() => {});
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', className: 'osm-tiles' }).addTo(map);
-  const modeLayers = Object.fromEntries(Object.keys(M).map(k => [k, L.layerGroup()]));
-  for (const l of RT.legs) {
-    const m = M[l.mode]; if (!m) continue;
-    const g = modeLayers[l.mode];
-    if (l.mode !== 'flight') g.addLayer(L.polyline(l.line, { color: '#fff', weight: m.w + 4, opacity: 0.9, interactive: false }));
-    L.polyline(l.line, { color: m.c, weight: m.w, dashArray: m.dash, opacity: 0.95, lineCap: 'round' }).addTo(g)
-      .bindPopup(() => { const x = byId(l.id) || hike(l.id) || hike(l.id.replace(/b$/, '')); return `<strong>${ic(m.icon, 'sm')} ${esc(x?.title || x?.name || m.label)}</strong>${x?.date ? `<div class="muted">${esc(fmt(x.date))}</div><a class="btn" href="#/boeking/${x.id}">${t('details')}</a>` : ''}`; });
-  }
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-  const mk = (ll, html, cls, size, bg) => L.marker(ll, { icon: L.divIcon({ className: '', html: `<div class="${cls}" style="background:${bg}">${html}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] }) });
-  for (const [k, name, sub] of [['ams', 'Amsterdam', t('amsSub')], ['mad', 'Madrid', t('madSub')]])
-    mk(RT.points[k], ic('plane'), 'tip-marker', 26, M.flight.c).addTo(modeLayers.flight).bindPopup(`<strong>${name}</strong><div class="muted">${sub}</div><a class="btn" href="#/boeking/out">${t('outbound')}</a> <a class="btn" href="#/boeking/home">${t('inbound')}</a>`);
+  const mk = (ll, html, cls, size, bg, anchor) => L.marker(ll, { icon: L.divIcon({ className: '', html: `<div class="${cls}" style="--c:${bg}">${html}</div>`, iconSize: [size, size], iconAnchor: anchor || [size / 2, size / 2] }) });
+  const modeLayers = Object.fromEntries(Object.keys(M).map(k => [k, L.layerGroup()]));
+  for (const l of legs) {
+    const m = M[l.mode]; if (!m) continue;
+    const g = modeLayers[l.mode], info = legInfo(l.id);
+    const pop = `<strong>${ic(m.icon, 'sm')} ${esc(info?.title || m.label)}</strong>${info?.date ? `<div class="muted">${esc(fmt(info.date))}</div>` : ''}${info?.link ? `<a class="btn" href="${info.link}">${t('details')}</a>` : ''}`;
+    if (l.mode !== 'flight') g.addLayer(L.polyline(l.line, { color: isDark() ? '#0b1220' : '#fff', weight: m.w + 5, opacity: 0.9, interactive: false, className: 'casing' }));
+    L.polyline(l.line, { color: m.c, weight: m.w, opacity: 0.95, lineCap: 'round', className: `route r-${l.mode}` }).addTo(g).bindPopup(pop);
+    if (l.mode !== 'flight') L.polyline(l.line, { color: '#fff', weight: Math.max(1.5, m.w - 2.5), opacity: 0.85, interactive: false, className: `flow f-${l.mode}` }).addTo(g);
+    if (!['w5', 'w5b', 'shuttle-amarga', 'boat-pehoe', 'bus-natales-back', 'bus-calafate-back', 't-uco-mdz'].includes(l.id)) {
+      const mid = l.line[Math.floor(l.line.length / 2)];
+      mk(mid, ic(m.icon), 'mode-badge', 26, m.c).addTo(g).bindPopup(pop);
+    }
+  }
   for (const [k, g] of Object.entries(modeLayers)) if (mapModes[k] !== false) g.addTo(map);
+  const overview = L.layerGroup(), detail = L.layerGroup();
   ORDER.forEach((id, i) => {
     const p = place(id), s = stay(T.days.find(d => d.placeId === id && d.sleep)?.sleep);
-    mk(s?.ll || p.center, i + 1, 'stop-marker', 30, css(`--p-${id}`)).setZIndexOffset(1000).addTo(map)
+    mk(s?.ll || p.center, i + 1, 'stop-marker', 30, css(`--p-${id}`)).setZIndexOffset(1000).addTo(overview)
       .bindPopup(`<div class="pop-img" style="background-image:url(${img(p)})"></div><strong>${i + 1}. ${esc(p.name)}</strong><div class="muted">${esc(range(p.dates[0], p.dates[1]))}</div><div>${esc(p.tagline)}</div><a class="btn" href="#/plek/${id}">${t('viewGuide')}</a>`, { maxWidth: 260 });
   });
-  for (const id of ['painegrande', 'frances', 'chileno']) {
-    const s = stay(id);
-    mk(s.ll, ic('tent'), 'tip-marker', 26, '#0f766e').setZIndexOffset(900).addTo(map).bindPopup(`<strong>${esc(s.name)}</strong><div class="muted">${esc(range(s.in, s.out))}</div><a class="btn" href="#/boeking/${id}">${t('details')}</a>`);
+  for (const s of T.stays) {
+    const pid = T.days.find(d => d.sleep === s.id)?.placeId, c = css(`--p-${pid}`) || '#0f766e';
+    mk(s.ll, `<span>${ic(['painegrande', 'frances', 'chileno'].includes(s.id) ? 'tent' : 'bed-double')}</span>`, 'stay-pin', 34, c, [17, 34]).setZIndexOffset(1200).addTo(detail)
+      .bindTooltip(esc(s.name), { permanent: true, direction: 'right', offset: [8, -18], className: 'stay-label' })
+      .bindPopup(`${s.photo ? `<div class="pop-img" style="background-image:url(${s.photo})"></div>` : ''}<strong>${esc(s.name)}</strong><div class="muted">${esc(range(s.in, s.out))}</div><a class="btn" href="#/boeking/${s.id}">${t('details')}</a>`, { maxWidth: 260 });
   }
   const tipLayer = L.layerGroup(), tipMarkers = {};
   for (const p of PL) for (const [list, color, kind] of [['highlights', '#2f6fd6', 'hl'], ['gems', '#8b5cf6', 'gem'], ['food', '#ea580c', 'food']]) for (const it of p[list]) {
@@ -454,21 +477,25 @@ function vMap(focus, tipId) {
       <div style="display:flex;gap:6px;flex-wrap:wrap"><a class="btn" href="${mapsUrl(it.q, it.ll)}" target="_blank" rel="noopener">${t('route')}</a><a class="btn" style="background:var(--accent-soft);color:var(--accent)" href="#/plek/${p.id}">${t('guide')}</a></div>`, { maxWidth: 260 });
     tipLayer.addLayer(m); tipMarkers[p.id + '|' + it.id] = m;
   }
-  if (mapTips) tipLayer.addTo(map);
-  const fitLegs = legs => { map.invalidateSize(); map.fitBounds(L.latLngBounds(legs.flatMap(l => l.line)), { paddingTopLeft: [20, 70], paddingBottomRight: [20, 190] }); };
-  const fitAll = () => fitLegs(RT.legs.filter(l => !l.intl));
-  const fitWorld = () => fitLegs(RT.legs);
+  const zoomLayers = () => {
+    const z = map.getZoom();
+    z >= 7 ? (map.removeLayer(overview), detail.addTo(map)) : (map.removeLayer(detail), overview.addTo(map));
+    mapTips && z >= 8 ? tipLayer.addTo(map) : map.removeLayer(tipLayer);
+    map.getContainer().classList.toggle('labels', z >= 9);
+  };
+  map.on('zoomend', zoomLayers);
+  const fitAll = () => { map.invalidateSize(); map.fitBounds(L.latLngBounds(legs.flatMap(l => l.line)), { paddingTopLeft: [20, 80], paddingBottomRight: [20, 190] }); };
   const fly = id => { const p = place(id); map.flyTo(p.center, p.zoom, { duration: 0.8 }); };
   requestAnimationFrame(() => {
     map.invalidateSize();
     if (focus && place(focus)) {
       const p = place(focus); map.setView(p.center, p.zoom);
-      if (tipId) { const m = tipMarkers[focus + '|' + decodeURIComponent(tipId)]; if (m) { if (!mapTips) { mapTips = true; tipLayer.addTo(map); $('#tipsBtn').classList.add('on'); } map.setView(m.getLatLng(), Math.max(p.zoom, 14)); setTimeout(() => m.openPopup(), 300); } }
+      if (tipId) { const m = tipMarkers[focus + '|' + decodeURIComponent(tipId)]; if (m) { mapTips = true; $('#tipsBtn').classList.add('on'); map.setView(m.getLatLng(), Math.max(p.zoom, 14)); setTimeout(() => m.openPopup(), 400); } }
     } else fitAll();
+    zoomLayers();
   });
-  $('#tipsBtn').onclick = () => { mapTips = !mapTips; store.set('mapTips', mapTips); $('#tipsBtn').classList.toggle('on', mapTips); mapTips ? tipLayer.addTo(map) : tipLayer.remove(); };
+  $('#tipsBtn').onclick = () => { mapTips = !mapTips; store.set('mapTips', mapTips); $('#tipsBtn').classList.toggle('on', mapTips); zoomLayers(); };
   $('#allBtn').onclick = fitAll;
-  $('#worldBtn').onclick = () => { if (mapModes.flight === false) view.querySelector('[data-mode=flight]').click(); fitWorld(); };
   view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
     const k = b.dataset.mode, on = mapModes[k] === false;
     mapModes[k] = on; store.set('mapModes', mapModes); b.classList.toggle('off', !on);
@@ -476,8 +503,32 @@ function vMap(focus, tipId) {
     toast(`${M[k].label} ${on ? t('on') : t('off')}`);
   });
   view.querySelectorAll('[data-fly]').forEach(b => b.onclick = () => fly(b.dataset.fly));
+  $('#playBtn').onclick = () => PLAYING ? (PLAYING.stop = true) : playTrip(map, legs, M, fitAll);
   L.control.zoom({ position: 'topright' }).addTo(map);
-  map.getContainer().querySelector('.leaflet-top.leaflet-right').style.marginTop = 'calc(env(safe-area-inset-top) + 60px)';
+  map.getContainer().querySelector('.leaflet-top.leaflet-right').style.marginTop = 'calc(env(safe-area-inset-top) + 92px)';
+}
+async function playTrip(map, legs, M, fitAll) {
+  const st = PLAYING = { stop: false }, btn = $('#playBtn'), cap = $('#playCap');
+  btn.innerHTML = `${ic('x', 'sm')} ${t('stopPlay')}`; btn.classList.add('on');
+  map.getContainer().classList.add('playing');
+  const layer = L.layerGroup().addTo(map), wait = ms => new Promise(r => setTimeout(r, ms));
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  for (const id of PLAY) {
+    if (st.stop) break;
+    const l = legs.find(x => x.id === id); if (!l) continue;
+    const m = M[l.mode], info = legInfo(id);
+    cap.hidden = false; cap.innerHTML = `<span class="mi" style="background:${m.c}">${ic(m.icon)}</span><div><strong>${esc(info?.title || m.label)}</strong><div class="tiny">${info?.date ? esc(fmt(info.date, true)) : ''}</div></div>`;
+    map.flyToBounds(L.latLngBounds(l.line), { paddingTopLeft: [40, 140], paddingBottomRight: [40, 200], maxZoom: l.mode === 'hike' ? 12 : l.mode === 'flight' ? 6 : 9, duration: reduce ? 0 : 1.1 });
+    await wait(reduce ? 50 : 1200);
+    const trail = L.polyline([], { color: m.c, weight: m.w + 2, opacity: 1, lineCap: 'round', className: 'trail' }).addTo(layer);
+    const mover = L.marker(l.line[0], { icon: L.divIcon({ className: '', html: `<div class="mover" style="--c:${m.c}">${ic(m.icon)}</div>`, iconSize: [36, 36], iconAnchor: [18, 18] }), zIndexOffset: 3000 }).addTo(layer);
+    const dur = reduce ? 1 : Math.min(2600, 900 + l.line.length * 2.2), t0 = performance.now();
+    await new Promise(res => { const step = now => { if (st.stop) return res(); const f = Math.min(1, (now - t0) / dur), e = f < .5 ? 2 * f * f : 1 - Math.pow(-2 * f + 2, 2) / 2, n = Math.max(1, Math.round(e * (l.line.length - 1))); trail.setLatLngs(l.line.slice(0, n + 1)); mover.setLatLng(l.line[n]); f < 1 ? requestAnimationFrame(step) : res(); }; requestAnimationFrame(step); });
+    layer.removeLayer(mover);
+  }
+  await wait(st.stop ? 0 : 600);
+  if (MAP === map) { map.removeLayer(layer); map.getContainer().classList.remove('playing'); cap.hidden = true; btn.innerHTML = `${ic('route', 'sm')} ${t('playRoute')}`; btn.classList.remove('on'); if (!st.stop) { fitAll(); toast(t('done') + ' ✓'); } }
+  PLAYING = null;
 }
 
 /* ================= weer ================= */
@@ -525,25 +576,59 @@ function vWeather() {
   if (navigator.onLine) Promise.all(ORDER.map(forecast)).then(() => { if (location.hash.startsWith('#/weer')) render(); });
 }
 
-/* ================= leesvoer ================= */
-function articleCard(a) {
-  const p = a.place && place(a.place);
-  return `<a class="card art-card" href="#/lees/${esc(a.id)}"><div class="art-thumb" style="${p ? `background-image:url(${img(p)})` : ''}">${p ? '' : ic(a.icon || 'notebook-pen', 'lg')}</div>
-    <div class="grow"><div class="tiny muted" style="font-weight:700">${ic('clock', 'sm')} ${t('minRead', { n: a.minutes || 5 })}</div><strong>${esc(L(a.title))}</strong><p class="small muted" style="margin:4px 0 0">${esc(L(a.intro))}</p></div></a>`;
+/* ================= leesvoer (magazine) ================= */
+const ART_MEDIA = {
+  'argentina-in-10-minutes': ['ba/plaza-de-mayo-casa-rosada', 'ba/cementerio-de-la-recoleta', 'ba/palacio-barolo'],
+  'chile-in-10-minutes': ['natales/muelle-historico', 'paine/lago-pehoe-per-catamaran', 'natales/costanera-monumento-al-viento'],
+  'patagonia-wind-ice-explorers': ['chalten/lago-del-desierto', 'natales/cueva-del-milodon', 'calafate/boottocht-upsala-spegazzini'],
+  'torres-del-paine': ['paine/lago-pehoe-per-catamaran', 'paine/grey-gletsjer', 'paine/hangbruggen-voorbij-grey', 'paine/mirador-britanico'],
+  'el-chalten-fitz-roy': ['chalten/laguna-de-los-tres', 'chalten/laguna-torre', 'chalten/laguna-capri'],
+  'glaciers-el-calafate': ['calafate/perito-moreno-gletsjer', 'calafate/boottocht-upsala-spegazzini', 'calafate/calafate-ijs'],
+  'tango-mate-asado': ['ba/caminito-la-boca', 'ba/cafe-tortoni', 'ba/san-telmo'],
+  'wine-mendoza': ['uco/zonsondergang-bij-alpasion', 'mendoza/catena-zapata', 'uco/bodegas-salentein-killka'],
+};
+function mediaOf(ref) {
+  const [pid, iid] = ref.split('/'), p = place(pid); if (!p) return null;
+  const it = ['highlights', 'gems', 'food'].flatMap(l => p[l]).find(x => x.id === iid);
+  return it?.photo ? { src: `photos/${it.photo.local}`, cap: it.name, credit: it.photo } : null;
+}
+const artMedia = a => (ART_MEDIA[a.id] || []).map(mediaOf).filter(Boolean);
+const artCover = a => artMedia(a)[0]?.src || (a.place ? img(place(a.place)) : 'img/paine.webp');
+function articleCard(a, big) {
+  const meta = `<div class="mz-meta">${ic('clock', 'sm')} ${t('minRead', { n: a.minutes || 5 })}</div>`;
+  if (big) return `<a class="mz-feature" href="#/lees/${esc(a.id)}"><div class="mz-cover" style="background-image:url(${artCover(a)})"></div><div class="mz-body"><div class="mz-kicker">${ic(a.icon || 'notebook-pen', 'sm')} ${t('reading')}</div><h2 class="serif">${esc(Lx(a.title))}</h2><p>${esc(Lx(a.intro))}</p>${meta}</div></a>`;
+  return `<a class="mz-row" href="#/lees/${esc(a.id)}"><div class="grow"><h3 class="serif">${esc(Lx(a.title))}</h3><p>${esc(Lx(a.intro))}</p>${meta}</div><div class="mz-thumb" style="background-image:url(${artCover(a)})"></div></a>`;
 }
 function vReading() {
   setChrome(t('reading'), { back: true });
-  view.innerHTML = `<div class="hero" style="background-image:url(img/natales.webp)"><div class="eyebrow">${ic('plane', 'sm')} AMS → MAD → EZE</div><h2>${t('reading')}</h2><p>${t('readingIntro')}</p></div>` + AR.map(articleCard).join('');
+  view.innerHTML = `<header class="mz-mast"><div class="mz-logo serif">${t('reading')}</div><div class="mz-sub">${t('stories', { n: AR.length })} · ${t('byline')}</div></header>
+    ${AR[0] ? articleCard(AR[0], true) : ''}<div class="mz-list">${AR.slice(1).map(a => articleCard(a)).join('')}</div>`;
 }
 function vArticle(id) {
-  const a = AR.find(x => x.id === id); if (!a) return vReading();
-  const p = a.place && place(a.place);
+  const i = AR.findIndex(x => x.id === id), a = AR[i]; if (!a) return vReading();
   setChrome(t('reading'), { back: true });
-  const paras = s => L(s).split(/\n\s*\n/).map(x => `<p>${esc(x.trim())}</p>`).join('');
-  view.innerHTML = `<div class="hero" style="background-image:url(${p ? img(p) : 'img/paine.webp'})"><div class="eyebrow">${ic(a.icon || 'notebook-pen', 'sm')} ${t('minRead', { n: a.minutes || 5 })}</div><h2>${esc(L(a.title))}</h2></div>
-    <article class="article"><p class="lead">${esc(L(a.intro))}</p>${(a.sections || []).map(s => `<h3>${esc(L(s.h))}</h3>${paras(s.p)}`).join('')}</article>
-    ${a.facts?.length ? `<div class="card facts-card"><div class="h-sec" style="margin:0 0 8px">${ic('sparkles')} ${t('funFacts')}</div><ul class="clean">${a.facts.map(f => `<li>${ic('star', 'sm')}<span>${esc(L(f))}</span></li>`).join('')}</ul></div>` : ''}
-    ${p ? `<a class="btn soft" href="#/plek/${p.id}">${ic('compass', 'sm')} ${t('guide')} ${esc(p.name)}</a>` : ''}`;
+  const media = artMedia(a), cover = media[0], inline = media.slice(1), facts = (a.facts || []).map(Lx);
+  const fig = m => m ? `<figure class="mz-fig"><img src="${m.src}" alt="${esc(m.cap)}" loading="lazy"><figcaption>${esc(m.cap)} · <a href="${esc(m.credit.page)}" target="_blank" rel="noopener">${esc(m.credit.author || 'Wikimedia')}</a>, ${esc(m.credit.license || '')}</figcaption></figure>` : '';
+  const paras = s => Lx(s).split(/\n\s*\n/).map(x => `<p>${esc(x.trim())}</p>`).join('');
+  let body = '', fi = 0;
+  (a.sections || []).forEach((s, k) => {
+    body += `<h3 class="serif">${esc(Lx(s.h))}</h3>${paras(s.p)}`;
+    if (k === 0 && inline[0]) body += fig(inline[0]);
+    if (k === 1 && facts[0]) body += `<blockquote class="mz-quote serif">“${esc(facts[0])}”</blockquote>`;
+    if (k === 3 && inline[1]) body += fig(inline[1]);
+    if (k === 4 && inline[2]) body += fig(inline[2]);
+  });
+  const next = AR[(i + 1) % AR.length];
+  view.innerHTML = `<article class="mz-article">
+    <div class="mz-kicker">${ic(a.icon || 'notebook-pen', 'sm')} ${t('reading')}</div>
+    <h1 class="serif">${esc(Lx(a.title))}</h1><p class="mz-dek">${esc(Lx(a.intro))}</p>
+    <div class="mz-byline"><div class="mz-avatar">M&amp;T</div><div><strong>${t('byline')}</strong><div class="tiny muted">${t('minRead', { n: a.minutes || 5 })}</div></div></div>
+    ${cover ? `<figure class="mz-fig mz-hero"><img src="${cover.src}" alt="${esc(cover.cap)}"><figcaption>${esc(cover.cap)} · <a href="${esc(cover.credit.page)}" target="_blank" rel="noopener">${esc(cover.credit.author || 'Wikimedia')}</a>, ${esc(cover.credit.license || '')}</figcaption></figure>` : `<figure class="mz-fig mz-hero"><img src="${artCover(a)}" alt=""></figure>`}
+    <div class="mz-text">${body}</div>
+    ${facts.length > 1 ? `<section class="mz-facts"><h3 class="serif">${ic('sparkles')} ${t('didYouKnow')}</h3>${facts.slice(1).map(f => `<div class="mz-fact">${esc(f)}</div>`).join('')}</section>` : ''}
+    ${a.place && place(a.place) ? `<a class="btn soft" href="#/plek/${a.place}">${ic('compass', 'sm')} ${t('guide')} ${esc(place(a.place).name)}</a>` : ''}
+  </article>
+  <div class="h-sec">${ic('notebook-pen')} ${t('readNext')}</div>${articleCard(next)}`;
 }
 
 /* ================= Spaans ================= */
@@ -560,9 +645,9 @@ function vSpanish() {
   setChrome(t('spanish'), { back: true });
   if (!PH) { view.innerHTML = `<div class="card">${t('noResults')}</div>`; return; }
   const total = PH.categories.reduce((s, c) => s + c.items.length, 0);
-  view.innerHTML = `<div class="card"><strong>${t('phrasesTips')}</strong><ul class="clean" style="margin-top:6px">${(PH.notes || []).map(n => `<li>${ic('lightbulb', 'sm')}<span>${esc(L(n))}</span></li>`).join('')}</ul><p class="tiny muted" style="margin:8px 0 0">${t('offlineTip')}</p></div>
+  view.innerHTML = `<div class="card"><strong>${t('phrasesTips')}</strong><ul class="clean" style="margin-top:6px">${(PH.notes || []).map(n => `<li>${ic('lightbulb', 'sm')}<span>${esc(Lx(n))}</span></li>`).join('')}</ul><p class="tiny muted" style="margin:8px 0 0">${t('offlineTip')}</p></div>
     <div class="search"><svg class="ico"><use href="#i-compass"/></svg><input id="pq" type="search" placeholder="${t('phrasesSearch')}" value="${esc(phraseQ)}" autocomplete="off"></div>
-    <div class="chips" id="pcats"><button class="chip ${phraseCat === 'all' ? 'on' : ''}" data-c="all">${t('fAll')} · ${total}</button>${PH.categories.map(c => `<button class="chip ${phraseCat === c.id ? 'on' : ''}" data-c="${esc(c.id)}">${ic(c.icon || 'info', 'sm')} ${esc(L(c.title))}</button>`).join('')}</div>
+    <div class="chips" id="pcats"><button class="chip ${phraseCat === 'all' ? 'on' : ''}" data-c="all">${t('fAll')} · ${total}</button>${PH.categories.map(c => `<button class="chip ${phraseCat === c.id ? 'on' : ''}" data-c="${esc(c.id)}">${ic(c.icon || 'info', 'sm')} ${esc(Lx(c.title))}</button>`).join('')}</div>
     <div id="plist"></div>`;
   const render = () => {
     const q = norm(phraseQ), tr = LANG === 'es' ? 'en' : LANG;
@@ -572,7 +657,7 @@ function vSpanish() {
       const items = c.items.filter(it => !q || norm(it.es + ' ' + it.nl + ' ' + it.en).includes(q));
       if (!items.length) continue;
       n += items.length;
-      html += `<div class="h-sec">${ic(c.icon || 'info')} ${esc(L(c.title))} <small>${items.length}</small></div><div class="card phrases">${items.map(it => `<div class="phrase"><div class="grow"><strong>${esc(it.es)}</strong>${it.region && it.region !== 'both' ? ` <span class="badge plain">${it.region === 'AR' ? '🇦🇷' : '🇨🇱'}</span>` : ''}<div class="small muted">${esc(it[tr] || it.en)}</div>${it.say ? `<div class="tiny" style="color:var(--accent)">🔊 ${esc(it.say)}</div>` : ''}</div><button class="btn soft round" data-say="${esc(it.es)}" aria-label="${t('listen')}">${ic('music')}</button></div>`).join('')}</div>`;
+      html += `<div class="h-sec">${ic(c.icon || 'info')} ${esc(Lx(c.title))} <small>${items.length}</small></div><div class="card phrases">${items.map(it => `<div class="phrase"><div class="grow"><strong>${esc(it.es)}</strong>${it.region && it.region !== 'both' ? ` <span class="badge plain">${it.region === 'AR' ? '🇦🇷' : '🇨🇱'}</span>` : ''}<div class="small muted">${esc(it[tr] || it.en)}</div>${it.say ? `<div class="tiny" style="color:var(--accent)">🔊 ${esc(it.say)}</div>` : ''}</div><button class="btn soft round" data-say="${esc(it.es)}" aria-label="${t('listen')}">${ic('music')}</button></div>`).join('')}</div>`;
     }
     $('#plist').innerHTML = html || `<p class="muted" style="text-align:center">${t('noResults')}</p>`;
     $('#plist').querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(b.dataset.say));
@@ -715,7 +800,7 @@ function askWho(done) {
 function route(soft) {
   if (!T) return;
   const [, a, b, c] = (location.hash || '#/vandaag').split('/');
-  if (a !== 'kaart' && MAP) { MAP.remove(); MAP = null; }
+  if (a !== 'kaart' && MAP) { if (PLAYING) PLAYING.stop = true; MAP.remove(); MAP = null; }
   const tab = { vandaag: 'vandaag', kaart: 'kaart', agenda: 'agenda', dag: 'agenda', plekken: 'plekken', plek: 'plekken' }[a] || 'meer';
   document.querySelectorAll('.nav a').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
   const y = scrollY;
