@@ -201,6 +201,7 @@ function setChrome(title, o = {}) {
   $('#nav').style.display = o.hideNav ? 'none' : '';
   $('#topbar').style.display = o.hideBar ? 'none' : '';
   view.className = o.full ? 'full' : '';
+  if ($('#askbtn')) $('#askbtn').hidden = !!o.hideNav || /^#\/vraag/.test(location.hash);
   document.title = title ? `${title} · ${t('appName')}` : t('appName');
 }
 $('#back').onclick = () => history.length > 1 ? history.back() : (location.hash = '#/vandaag');
@@ -259,7 +260,7 @@ function stageScroller() {
 function tiles() {
   const open = openTodoCount();
   const tile = (href, icon, color, label, badge) => `<a class="tile" href="${href}"><div class="bubble" style="background:${color};color:#fff">${ic(icon)}</div>${label}${badge ? `<span class="badge-n">${badge}</span>` : ''}</a>`;
-  return `<div class="tiles">${tile('#/boekingen', 'ticket', 'var(--m-flight)', t('tileBookings'))}${tile('#/todo', 'list-checks', 'var(--todo)', t('tileTodo'), open)}${tile('#/weer', 'cloud-sun', 'var(--m-boat)', t('tileWeather'))}${tile('#/info', 'phone', '#e11d48', t('tileEmergency'))}</div>`;
+  return `<div class="tiles">${tile('#/boekingen', 'ticket', 'var(--m-flight)', t('tileBookings'))}${tile('#/todo', 'list-checks', 'var(--todo)', t('tileTodo'), open)}${tile('#/weer', 'cloud-sun', 'var(--m-boat)', t('tileWeather'))}${tile('#/info', 'phone', '#e11d48', t('tileEmergency'))}${window.FX_TILES ? FX_TILES() : ''}</div>`;
 }
 function extrasRow() {
   return `<div class="duo"><a class="duo-card" href="#/leesvoer" style="background-image:linear-gradient(160deg,rgba(15,23,42,.15),rgba(15,23,42,.8)),url(img/calafate.webp)">${ic('notebook-pen')}<strong>${t('reading')}</strong><span>${t('readingSub')}</span></a>
@@ -290,7 +291,7 @@ function vToday() {
       forecast(p.id).then(f => { if (f && !store.get('fcShown:' + td)) { store.set('fcShown:' + td, 1); if (location.hash.startsWith('#/vandaag') || !location.hash) route(true); } });
     }
     const nx = nextMove();
-    if (nx) h += `<div class="h-sec">${ic('clock')} ${t('nextDeparture')} <small>${nx.x.date === td ? t('todayLc') : esc(fmt(nx.x.date))}</small></div><div class="tl">${tlItem({ ref: nx.x.id })}</div>`;
+    if (nx) h += `<div class="h-sec">${ic('clock')} ${t('nextDeparture')} <small>${nx.x.date === td ? t('todayLc') : esc(fmt(nx.x.date))} · <span data-until="${nx.at.toISOString()}">${typeof ft === 'function' ? ft('nextIn', { t: dur(nx.at - now()) }) : ''}</span></small></div><div class="tl">${tlItem({ ref: nx.x.id })}</div>`;
     h += `<div class="h-sec">${ic('sun')} ${t('today')}</div>` + timeline(d) + (d.sleep ? stayCard(stay(d.sleep)) : '');
     if (p) {
       const pool = p.gems.length ? p.gems : p.highlights, g = pool[dayDiff(td, start) % pool.length];
@@ -300,7 +301,7 @@ function vToday() {
     if (tm) h += `<div class="h-sec">${ic('chevron-right')} ${t('tomorrow')}</div><a class="dayrow" href="#/dag/${tm.date}"><div class="db" style="background:${pcolor(tm.placeId)}"><span>${days()[parseD(tm.date).getDay()]}</span><b>${parseD(tm.date).getDate()}</b></div><div class="grow"><strong>${esc(tm.title)}</strong><div class="small muted">${esc(tm.place)}</div></div>${ic('chevron-right', 'chev')}</a>`;
     h += extrasRow();
   }
-  view.innerHTML = h;
+  view.innerHTML = (window.FX_INSTALL ? FX_INSTALL() : '') + h;
   startCountdown();
 }
 const DEPART = new Date('2026-11-29T07:10:00+01:00');
@@ -634,12 +635,22 @@ function vArticle(id) {
 /* ================= Spaans ================= */
 let phraseCat = 'all', phraseQ = '';
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+let VOICES = [];
+const loadVoices = () => { try { VOICES = speechSynthesis.getVoices(); } catch {} };
+if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.addEventListener?.('voiceschanged', loadVoices); }
 function speak(text) {
+  if (!('speechSynthesis' in window)) return toast(t('noSpeech'));
   try {
-    const u = new SpeechSynthesisUtterance(text), vs = speechSynthesis.getVoices();
-    u.voice = vs.find(v => /es[-_](AR|419|US|MX)/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null;
-    u.lang = u.voice?.lang || 'es-AR'; u.rate = 0.9; speechSynthesis.cancel(); speechSynthesis.speak(u);
-  } catch {}
+    if (!VOICES.length) loadVoices();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = VOICES.find(v => /^es[-_](AR|419|US|MX)/i.test(v.lang)) || VOICES.find(v => /^es[-_]ES/i.test(v.lang)) || VOICES.find(v => /^es/i.test(v.lang));
+    if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'es-ES';
+    u.rate = 0.9; u.volume = 1;
+    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    speechSynthesis.resume();
+    speechSynthesis.speak(u);
+    if (!v && !speak.warned) { speak.warned = 1; setTimeout(() => { if (!speechSynthesis.speaking) toast(t('speechHint')); }, 900); }
+  } catch { toast(t('noSpeech')); }
 }
 function vSpanish() {
   setChrome(t('spanish'), { back: true });
@@ -737,7 +748,8 @@ function vMore() {
   setChrome(t('more'));
   const row = (href, icon, color, ti, s, badge) => `<a class="list-link" href="${href}"><div class="bubble" style="background:${color};color:#fff">${ic(icon)}</div><div class="grow"><strong>${ti}</strong><span>${s}</span></div>${badge ? `<span class="badge todo">${badge}</span>` : ''}${ic('chevron-right', 'chev')}</a>`;
   view.innerHTML = `<div class="card">${row('#/boekingen', 'ticket', 'var(--m-flight)', t('bookings'), t('bookingsSub'))}${row('#/todo', 'list-checks', 'var(--todo)', t('todo'), t('todoSub'), openTodoCount())}${row('#/pakken', 'backpack', 'var(--m-hike)', t('packing'), t('packingSub'))}${row('#/weer', 'cloud-sun', 'var(--m-boat)', t('weather'), t('weatherSub'))}</div>
-    <div class="card">${row('#/leesvoer', 'notebook-pen', 'var(--p-ba)', t('reading'), t('readingSub'))}${row('#/spaans', 'music', 'var(--p-chalten)', t('spanish'), t('spanishSub'))}</div>
+    ${window.FX_MORE ? FX_MORE() : ''}
+    <div class="card">${row('#/leesvoer', 'notebook-pen', 'var(--p-ba)', t('reading'), t('readingSub'))}${row('#/spaans', 'volume-2', 'var(--p-chalten)', t('spanish'), t('spanishSub'))}</div>
     <div class="card">${row('#/info', 'info', '#e11d48', t('info'), t('infoSub'))}${row('#/notities', 'notebook-pen', 'var(--m-boat)', t('notes'), t('notesSub'))}${row('#/instellingen', 'settings', 'var(--m-car)', t('settings'), t('settingsSub'))}</div>`;
 }
 function vInfo() {
@@ -806,10 +818,10 @@ function route(soft) {
   const y = scrollY;
   ({ vandaag: vToday, kaart: () => vMap(b, c), agenda: vAgenda, dag: () => vDay(b), plekken: vPlaces, plek: () => vPlace(b), boekingen: vBookings, boeking: () => vBooking(b),
      todo: vTodo, bericht: () => vMessage(b), meer: vMore, info: vInfo, pakken: vPack, weer: vWeather, notities: vNotes, instellingen: vSettings,
-     leesvoer: vReading, lees: () => vArticle(b), spaans: vSpanish }[a] || vToday)();
+     leesvoer: vReading, lees: () => vArticle(b), spaans: vSpanish, ...(window.FX_ROUTES || {}) }[a] || vToday)();
   if (soft) scrollTo(0, y); else if (a !== 'agenda') scrollTo(0, 0);
 }
-window.addEventListener('hashchange', () => route());
+window.addEventListener('hashchange', () => { if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(() => route()); else route(); });
 const net = () => { $('#offline').hidden = navigator.onLine; };
 window.addEventListener('online', net); window.addEventListener('offline', net);
 
@@ -825,7 +837,7 @@ window.addEventListener('online', net); window.addEventListener('offline', net);
     const { key, data } = await unlock();
     KEY = key; BASE = data; RT = data.routes; CL = data.climate || {}; AR = data.articles || []; PH = data.phrases || null;
     applyLang();
-    const go = () => { route(); Sync.init(); };
+    const go = () => { route(); Sync.init(); window.Fam?.init(); };
     store.get('me') ? go() : askWho(go);
   } catch (e) { setChrome(t('appName'), { hideNav: true }); view.innerHTML = `<div class="card" style="margin-top:40px"><h2>${t('cantLoad')}</h2><p class="muted">${esc(e.message)}</p></div>`; }
 })();

@@ -4,7 +4,7 @@ window.I18N = {
   nl: {
     _days: ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'], _daysLong: ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'],
     _months: ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'],
-    cdDays: 'dagen', cdHours: 'uur', cdMin: 'min', cdSec: 'sec', untilDeparture: 'tot vertrek uit Amsterdam', playRoute: 'Speel de reis af', stopPlay: 'Stop', done: 'Klaar', byline: 'Reisgids Martine & Thijs', stories: '{n} verhalen voor onderweg', readNext: 'Lees verder', didYouKnow: 'Wist je dat?', stays: 'Verblijven', nextIn: 'over {t}',
+    cdDays: 'dagen', cdHours: 'uur', cdMin: 'min', cdSec: 'sec', untilDeparture: 'tot vertrek uit Amsterdam', playRoute: 'Speel de reis af', stopPlay: 'Stop', done: 'Klaar', byline: 'Reisgids Martine & Thijs', stories: '{n} verhalen voor onderweg', readNext: 'Lees verder', didYouKnow: 'Wist je dat?', stays: 'Verblijven', nextIn: 'over {t}', noSpeech: 'Spraak werkt niet in deze browser.', speechHint: 'Geen geluid? Zet je iPhone uit de stille modus (schakelaar aan de zijkant) en zet het volume omhoog. Extra Spaanse stemmen: Instellingen › Toegankelijkheid › Gesproken materiaal › Stemmen.', search: 'Zoek',
     appName: 'Argentinië', lockTitle: 'Argentinië & Chili', lockIntro: 'Vul de code in die je van Martine of Thijs hebt gekregen. Dit hoeft maar één keer op dit toestel.',
     code: 'Code', open: 'Openen', busy: 'Bezig…', wrongCode: 'Die code klopt niet.', cantLoad: 'Kan niet laden', noData: 'Geen data beschikbaar. Open de app één keer met internet.',
     navToday: 'Vandaag', navMap: 'Kaart', navAgenda: 'Agenda', navPlaces: 'Plekken', navMore: 'Meer',
@@ -50,7 +50,7 @@ window.I18N = {
   en: {
     _days: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], _daysLong: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     _months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    cdDays: 'days', cdHours: 'hours', cdMin: 'min', cdSec: 'sec', untilDeparture: 'until departure from Amsterdam', playRoute: 'Play the trip', stopPlay: 'Stop', done: 'Done', byline: 'Martine & Thijs travel guide', stories: '{n} stories for the journey', readNext: 'Read next', didYouKnow: 'Did you know?', stays: 'Stays', nextIn: 'in {t}',
+    cdDays: 'days', cdHours: 'hours', cdMin: 'min', cdSec: 'sec', untilDeparture: 'until departure from Amsterdam', playRoute: 'Play the trip', stopPlay: 'Stop', done: 'Done', byline: 'Martine & Thijs travel guide', stories: '{n} stories for the journey', readNext: 'Read next', didYouKnow: 'Did you know?', stays: 'Stays', nextIn: 'in {t}', noSpeech: 'Speech does not work in this browser.', speechHint: 'No sound? Switch your iPhone off silent mode (the switch on the side) and turn up the volume. More Spanish voices: Settings › Accessibility › Spoken Content › Voices.', search: 'Search',
     appName: 'Argentina', lockTitle: 'Argentina & Chile', lockIntro: 'Enter the code you got from Martine or Thijs. You only need to do this once on this device.',
     code: 'Code', open: 'Open', busy: 'Working…', wrongCode: "That code isn't right.", cantLoad: "Can't load", noData: 'No data available. Open the app once with internet.',
     navToday: 'Today', navMap: 'Map', navAgenda: 'Agenda', navPlaces: 'Places', navMore: 'More',
@@ -96,7 +96,7 @@ window.I18N = {
   es: {
     _days: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'], _daysLong: ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'],
     _months: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
-    cdDays: 'días', cdHours: 'horas', cdMin: 'min', cdSec: 'seg', untilDeparture: 'para la salida desde Ámsterdam', playRoute: 'Reproducir el viaje', stopPlay: 'Parar', done: 'Listo', byline: 'Guía de viaje de Martine y Thijs', stories: '{n} historias para el viaje', readNext: 'Seguí leyendo', didYouKnow: '¿Sabías que…?', stays: 'Alojamientos', nextIn: 'en {t}',
+    cdDays: 'días', cdHours: 'horas', cdMin: 'min', cdSec: 'seg', untilDeparture: 'para la salida desde Ámsterdam', playRoute: 'Reproducir el viaje', stopPlay: 'Parar', done: 'Listo', byline: 'Guía de viaje de Martine y Thijs', stories: '{n} historias para el viaje', readNext: 'Seguí leyendo', didYouKnow: '¿Sabías que…?', stays: 'Alojamientos', nextIn: 'en {t}', noSpeech: 'La voz no funciona en este navegador.', speechHint: '¿Sin sonido? Sacá el iPhone del modo silencio (el botón del costado) y subí el volumen. Más voces: Ajustes › Accesibilidad › Contenido leído › Voces.', search: 'Buscar',
     appName: 'Argentina', lockTitle: 'Argentina y Chile', lockIntro: 'Ingresá el código que te dieron Martine o Thijs. Solo hace falta una vez en este dispositivo.',
     code: 'Código', open: 'Abrir', busy: 'Un momento…', wrongCode: 'Ese código no es correcto.', cantLoad: 'No se pudo cargar', noData: 'No hay datos. Abrí la app una vez con internet.',
     navToday: 'Hoy', navMap: 'Mapa', navAgenda: 'Agenda', navPlaces: 'Lugares', navMore: 'Más',

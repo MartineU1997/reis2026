@@ -478,3 +478,70 @@ textarea { width: 100%; min-height: 50vh; font: inherit; color: inherit; backgro
 .play-cap[hidden] { display: none; }
 .play-cap .mi { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; color: #fff; flex: none; }
 .play-cap strong { font-size: 14px; }
+
+/* ================= nieuwe functies ================= */
+.ask-btn { width: 36px; height: 36px; color: #fff; background: linear-gradient(135deg, var(--m-flight), var(--m-boat)); box-shadow: 0 6px 16px -6px rgba(99,102,241,.6); }
+.ask-btn .ico { width: 18px; height: 18px; }
+
+/* check-ins en dagboek */
+.ci-card { background: var(--surface); border-radius: var(--r); overflow: hidden; margin: 0 0 14px; box-shadow: var(--shadow); }
+.ci-photo { display: block; width: 100%; max-height: 420px; object-fit: cover; background: var(--surface-2); }
+.ci-body { padding: 14px 16px 16px; }
+.ci-head { display: flex; align-items: center; gap: 10px; }
+.ci-msg { margin: 10px 0 0; font-size: 16px; line-height: 1.5; white-space: pre-wrap; }
+.ci-loc { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 13px; font-weight: 650; color: var(--accent); }
+.ci-compose textarea { min-height: 90px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); font-size: 16px; }
+.btn[disabled] { opacity: .5; pointer-events: none; }
+
+/* valuta */
+.fx-input { width: 100%; font: inherit; font-size: 34px; font-weight: 800; letter-spacing: -0.03em; padding: 10px 14px; border-radius: 16px; border: 0; background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); font-variant-numeric: tabular-nums; }
+.fx-input:focus, .ex-text:focus, .ex-select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fx-row { display: flex; align-items: center; padding: 10px 2px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.fx-row:first-child { border-top: 0; }
+.fx-row strong { font-size: 20px; letter-spacing: -0.02em; }
+.fx-row.sub { border-top: 0; padding: 0 2px 6px; }
+
+/* uitgaven */
+.ex-sum .ex-total { font-size: 40px; font-weight: 800; letter-spacing: -0.04em; margin: 2px 0 12px; font-variant-numeric: tabular-nums; }
+.ex-bars { display: grid; gap: 10px; }
+.ex-bars span { font-size: 13px; color: var(--muted); }
+.ex-bars b { color: var(--text); }
+.ex-bar { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-bottom: 4px; box-shadow: inset 0 0 0 1px var(--line); }
+.ex-bar i { display: block; height: 100%; border-radius: inherit; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+.ex-form .row { gap: 8px; }
+.ex-select { font: inherit; font-weight: 700; font-size: 17px; padding: 0 12px; height: 62px; border-radius: 16px; border: 0; background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+.ex-text { width: 100%; margin-top: 8px; font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 14px; border: 0; background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
+.ex-form .chips { flex-wrap: wrap; overflow: visible; }
+.ex-item { padding: 12px 14px; margin-bottom: 8px; }
+.ex-item .row { gap: 10px; }
+
+/* vraag de app */
+.ask { padding-bottom: 90px; }
+.bubble-ai { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 16px; animation: rise .35s cubic-bezier(.2,.8,.2,1) both; }
+.bubble-ai > .grow > p { margin: 0 0 10px; background: var(--surface); padding: 12px 14px; border-radius: 6px 20px 20px 20px; box-shadow: var(--shadow); line-height: 1.45; }
+.bubble-ai .card, .bubble-ai .tl, .bubble-ai .tipcard, .bubble-ai .dayrow { margin-bottom: 8px; }
+.ai-av { flex: none; width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--m-flight), var(--m-boat)); box-shadow: 0 6px 16px -6px rgba(99,102,241,.6); }
+.bubble-me { margin: 0 0 16px auto; width: fit-content; max-width: 80%; background: linear-gradient(135deg, var(--m-flight), #4f46e5); color: #fff; padding: 11px 15px; border-radius: 20px 6px 20px 20px; font-weight: 600; animation: rise .3s cubic-bezier(.2,.8,.2,1) both; }
+.chips.wrap { flex-wrap: wrap; overflow: visible; padding-bottom: 4px; }
+.ask-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + 22px + env(safe-area-inset-bottom)); width: min(728px, calc(100% - 24px)); display: flex; gap: 8px; padding: 6px; border-radius: 22px; background: color-mix(in srgb, var(--surface) 82%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow), inset 0 0 0 1px var(--line); z-index: 20; }
+.ask-bar input { flex: 1; min-width: 0; font: inherit; font-size: 16px; border: 0; background: transparent; color: var(--text); padding: 0 10px; outline: none; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* reis in cijfers */
+.hero .count { font-size: 64px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat { background: var(--surface); border-radius: var(--r); padding: 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 2px; }
+.stat-ico { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; color: #fff; margin-bottom: 6px; }
+.stat b { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+/* delen */
+.share-url { margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line); font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; color: var(--muted); }
+.install { background: linear-gradient(135deg, var(--accent-soft), var(--gem-soft)); box-shadow: none; }
+
+/* paginaovergangen */
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+.empty { text-align: center; padding: 34px 20px; color: var(--muted); }
+.empty .ico { width: 34px; height: 34px; opacity: .6; }
+.empty p { margin: 10px auto 0; max-width: 300px; }
