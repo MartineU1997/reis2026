@@ -1,11 +1,33 @@
 /* Offline: de app en alle data worden bij de eerste keer opgeslagen. Met internet wordt op de achtergrond bijgewerkt.
    Kaarttegels die je bekijkt worden apart bewaard, zodat die stukken kaart ook offline werken. */
-const CACHE = 'trip-20261108191658';
+const CACHE = 'trip-20261108212456';
 const TILES = 'tiles-v1';
-const FILES = ["./","app.js","config.js","data.enc.json","features.js","fonts/jakarta.woff2","geo/countries.json","i18n.js","icons/icon-180.png","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-512.png","icons.svg","img/buenosaires.webp","img/calafate.webp","img/chalten.webp","img/mendoza.webp","img/natales.webp","img/paine.webp","img/uco.webp","index.html","manifest.webmanifest","photos/ba-bar-el-federal.webp","photos/ba-cafe-tortoni.webp","photos/ba-caminito-la-boca.webp","photos/ba-cementerio-de-la-recoleta.webp","photos/ba-don-julio.webp","photos/ba-el-ateneo-grand-splendid.webp","photos/ba-el-preferido-de-palermo.webp","photos/ba-jardi-n-japone-s.webp","photos/ba-plaza-de-mayo-casa-rosada.webp","photos/ba-reserva-ecolo-gica-costanera-sur.webp","photos/ba-san-telmo.webp","photos/ba_palacio_barolo_0.webp","photos/ba_palermo_soho_0.webp","photos/calafate-boottocht-upsala-spegazzini.webp","photos/calafate-glaciarium.webp","photos/calafate-perito-moreno-gletsjer.webp","photos/calafate_calafate_ijs_0.webp","photos/calafate_reserva_laguna_nimez_2.webp","photos/chalten-lago-del-desierto.webp","photos/chalten-laguna-capri.webp","photos/chalten-loma-del-pliegue-tumbado.webp","photos/chalten_laguna_de_los_tres_1.webp","photos/chalten_laguna_torre_1.webp","photos/chalten_mirador_de_los_c_ndores_1.webp","photos/mendoza-catena-zapata.webp","photos/mendoza-cerro-de-la-gloria.webp","photos/mendoza-paardrijden-met-asado.webp","photos/mendoza-termas-de-cacheuta.webp","photos/natales-cerro-dorotea.webp","photos/natales-costanera-monumento-al-viento.webp","photos/natales-cueva-del-milodo-n.webp","photos/natales-muelle-histo-rico.webp","photos/natales-santolla.webp","photos/natales_plaza_de_armas_1.webp","photos/paine-base-las-torres.webp","photos/paine-chileno.webp","photos/paine-hangbruggen-voorbij-grey.webp","photos/paine-lago-pehoe-per-catamaran.webp","photos/paine_franc_s_1.webp","photos/paine_grey_gletsjer_2.webp","photos/paine_mirador_brit_nico_0.webp","photos/paine_paine_grande_2.webp","photos/paine_salto_grande_1.webp","photos/uco-bodegas-salentein-killka.webp","photos/uco-manzano-histo-rico.webp","photos/uco-zonsondergang-bij-alpasio-n.webp","styles.css","vendor/leaflet.css","vendor/leaflet.js"];
+const AUDIO = 'audio-v1';
+const FILES = ["./","app.js","config.js","data.enc.json","extra.js","features.js","fonts/jakarta.woff2","geo/countries.json","i18n.js","icons/icon-180.png","icons/icon-192.png","icons/icon-512.png","icons/icon-maskable-512.png","icons.svg","img/buenosaires.webp","img/calafate.webp","img/chalten.webp","img/mendoza.webp","img/natales.webp","img/paine.webp","img/uco.webp","index.html","manifest.webmanifest","photos/ba-bar-el-federal.webp","photos/ba-cafe-tortoni.webp","photos/ba-caminito-la-boca.webp","photos/ba-cementerio-de-la-recoleta.webp","photos/ba-don-julio.webp","photos/ba-el-ateneo-grand-splendid.webp","photos/ba-el-preferido-de-palermo.webp","photos/ba-jardi-n-japone-s.webp","photos/ba-plaza-de-mayo-casa-rosada.webp","photos/ba-reserva-ecolo-gica-costanera-sur.webp","photos/ba-san-telmo.webp","photos/ba_palacio_barolo_0.webp","photos/ba_palermo_soho_0.webp","photos/calafate-boottocht-upsala-spegazzini.webp","photos/calafate-glaciarium.webp","photos/calafate-perito-moreno-gletsjer.webp","photos/calafate_calafate_ijs_0.webp","photos/calafate_reserva_laguna_nimez_2.webp","photos/chalten-lago-del-desierto.webp","photos/chalten-laguna-capri.webp","photos/chalten-loma-del-pliegue-tumbado.webp","photos/chalten_laguna_de_los_tres_1.webp","photos/chalten_laguna_torre_1.webp","photos/chalten_mirador_de_los_c_ndores_1.webp","photos/mendoza-catena-zapata.webp","photos/mendoza-cerro-de-la-gloria.webp","photos/mendoza-paardrijden-met-asado.webp","photos/mendoza-termas-de-cacheuta.webp","photos/natales-cerro-dorotea.webp","photos/natales-costanera-monumento-al-viento.webp","photos/natales-cueva-del-milodo-n.webp","photos/natales-muelle-histo-rico.webp","photos/natales-santolla.webp","photos/natales_plaza_de_armas_1.webp","photos/paine-base-las-torres.webp","photos/paine-chileno.webp","photos/paine-hangbruggen-voorbij-grey.webp","photos/paine-lago-pehoe-per-catamaran.webp","photos/paine_franc_s_1.webp","photos/paine_grey_gletsjer_2.webp","photos/paine_mirador_brit_nico_0.webp","photos/paine_paine_grande_2.webp","photos/paine_salto_grande_1.webp","photos/uco-bodegas-salentein-killka.webp","photos/uco-manzano-histo-rico.webp","photos/uco-zonsondergang-bij-alpasio-n.webp","styles.css","vendor/leaflet.css","vendor/leaflet.js"];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting())); });
+// Spaanse uitspraak: apart en blijvend bewaard (ongeveer 3 MB), op de achtergrond aangevuld.
+async function fillAudio() {
+  try {
+    const c = await caches.open(AUDIO);
+    const ids = await (await fetch('audio/index.json', { cache: 'no-cache' })).json();
+    const have = new Set((await c.keys()).map(r => new URL(r.url).pathname.split('/').pop()));
+    for (const id of ids) { const f = id + '.m4a'; if (!have.has(f)) { try { const r = await fetch('audio/' + f); if (r.ok) await c.put('audio/' + f, r); } catch { return; } } }
+  } catch {}
+}
+// iPhone vraagt geluid op met een Range-header en verwacht dan een 206-antwoord.
+async function audio(req) {
+  const c = await caches.open(AUDIO);
+  let r = await c.match(req.url, { ignoreSearch: true });
+  if (!r) { try { const n = await fetch(req.url); if (n.ok) { await c.put(req.url, n.clone()); r = n; } else return n; } catch { return new Response('', { status: 504 }); } }
+  const range = req.headers.get('range');
+  if (!range) return r;
+  const buf = await r.arrayBuffer(), m = /bytes=(\d*)-(\d*)/.exec(range) || [];
+  const start = m[1] ? +m[1] : 0, end = m[2] ? Math.min(+m[2], buf.byteLength - 1) : buf.byteLength - 1;
+  return new Response(buf.slice(start, end + 1), { status: 206, headers: { 'Content-Type': 'audio/mp4', 'Content-Range': `bytes ${start}-${end}/${buf.byteLength}`, 'Content-Length': String(end - start + 1), 'Accept-Ranges': 'bytes' } });
+}
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== TILES).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  fillAudio();
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k !== TILES && k !== AUDIO).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 async function tile(req) {
   const c = await caches.open(TILES);
@@ -25,6 +47,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   if (url.hostname === 'tile.openstreetmap.org') { e.respondWith(tile(req)); return; }
   if (url.origin !== location.origin) return;
+  if (/\/audio\/[0-9a-f]{8}\.m4a$/.test(url.pathname)) { e.respondWith(audio(req)); return; }
   e.respondWith(caches.open(CACHE).then(async c => {
     const hit = await c.match(req, { ignoreSearch: true });
     const fresh = fetch(req, { cache: 'no-cache' }).then(r => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => null);

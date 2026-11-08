@@ -227,11 +227,11 @@ function tlItem(it) {
   if (it.hike) {
     const h = hike(it.hike);
     return `<div class="tl-item"><div class="tl-ico bg-hike">${ic('footprints')}</div><div class="tl-body"><div class="t"><span>${esc(h.approx)}</span></div><strong>${esc(h.name)}</strong>
-      <ul>${h.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></div></div>`;
+      <ul>${h.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>${BASE.hikemap?.hikes?.[h.id] ? `<a class="btn soft" style="margin-top:8px" href="#/wandelkaart/${esc(h.id)}">${ic('map', 'sm')} ${window.xt ? xt('hikeMap') : 'Kaart'}</a>` : ''}</div></div>`;
   }
   const todo = it.status === 'todo';
   return `<div class="tl-item"><div class="tl-ico bg-${todo ? 'todo' : 'note'}">${ic(todo ? 'circle-alert' : 'info')}</div><div class="tl-body">
-    ${it.time || todo ? `<div class="t"><span>${esc(it.time || '')}</span>${status(it.status)}</div>` : ''}<strong style="font-weight:600">${esc(it.text)}</strong></div></div>`;
+    ${it.time || todo ? `<div class="t"><span>${esc(it.time || '')}</span>${status(it.status)}</div>` : ''}<strong style="font-weight:600">${esc(it.text)}</strong>${it.link ? `<div><a class="btn soft" style="margin-top:8px" href="${esc(it.link)}">${ic('chevron-right', 'sm')} ${esc(it.linkText || t('more'))}</a></div>` : ''}</div></div>`;
 }
 const timeline = d => `<div class="tl">${d.items.map(tlItem).join('')}</div>`;
 function stayCard(s, label = t('sleep')) {
@@ -638,7 +638,10 @@ const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ
 let VOICES = [];
 const loadVoices = () => { try { VOICES = speechSynthesis.getVoices(); } catch {} };
 if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.addEventListener?.('voiceschanged', loadVoices); }
-function speak(text) {
+const fnv = s => { let h = 0x811c9dc5; for (const c of new TextEncoder().encode(s)) { h ^= c; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, '0'); };
+let AUD = null, AUDSET = null;
+fetch('audio/index.json').then(r => r.ok ? r.json() : []).then(a => { AUDSET = new Set(a); }).catch(() => { AUDSET = new Set(); });
+function synth(text) {
   if (!('speechSynthesis' in window)) return toast(t('noSpeech'));
   try {
     if (!VOICES.length) loadVoices();
@@ -646,11 +649,24 @@ function speak(text) {
     const v = VOICES.find(v => /^es[-_](AR|419|US|MX)/i.test(v.lang)) || VOICES.find(v => /^es[-_]ES/i.test(v.lang)) || VOICES.find(v => /^es/i.test(v.lang));
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'es-ES';
     u.rate = 0.9; u.volume = 1;
-    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
-    speechSynthesis.resume();
-    speechSynthesis.speak(u);
-    if (!v && !speak.warned) { speak.warned = 1; setTimeout(() => { if (!speechSynthesis.speaking) toast(t('speechHint')); }, 900); }
+    const go = () => { speechSynthesis.resume(); speechSynthesis.speak(u); };
+    if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); setTimeout(go, 60); } else go();
+    if (!speak.warned) { speak.warned = 1; setTimeout(() => { if (!speechSynthesis.speaking) toast(t('speechHint')); }, 1200); }
   } catch { toast(t('noSpeech')); }
+}
+function speak(text, btn) {
+  const id = fnv(String(text).trim());
+  if (AUDSET && !AUDSET.has(id)) return synth(text);
+  try {
+    // één hergebruikt <audio>-element: iOS speelt dit af via het media-kanaal, ook met stille modus aan
+    if (!AUD) { AUD = new Audio(); AUD.preload = 'auto'; AUD.setAttribute('playsinline', ''); }
+    AUD.pause(); AUD.src = 'audio/' + id + '.m4a'; AUD.currentTime = 0;
+    document.querySelectorAll('.playing').forEach(x => x.classList.remove('playing'));
+    if (btn) { btn.classList.add('playing'); AUD.onended = AUD.onpause = () => btn.classList.remove('playing'); }
+    const p = AUD.play();
+    if (p && p.catch) p.catch(() => { btn?.classList.remove('playing'); synth(text); });
+    AUD.onerror = () => { btn?.classList.remove('playing'); synth(text); };
+  } catch { synth(text); }
 }
 function vSpanish() {
   setChrome(t('spanish'), { back: true });
@@ -668,10 +684,10 @@ function vSpanish() {
       const items = c.items.filter(it => !q || norm(it.es + ' ' + it.nl + ' ' + it.en).includes(q));
       if (!items.length) continue;
       n += items.length;
-      html += `<div class="h-sec">${ic(c.icon || 'info')} ${esc(Lx(c.title))} <small>${items.length}</small></div><div class="card phrases">${items.map(it => `<div class="phrase"><div class="grow"><strong>${esc(it.es)}</strong>${it.region && it.region !== 'both' ? ` <span class="badge plain">${it.region === 'AR' ? '🇦🇷' : '🇨🇱'}</span>` : ''}<div class="small muted">${esc(it[tr] || it.en)}</div>${it.say ? `<div class="tiny" style="color:var(--accent)">🔊 ${esc(it.say)}</div>` : ''}</div><button class="btn soft round" data-say="${esc(it.es)}" aria-label="${t('listen')}">${ic('music')}</button></div>`).join('')}</div>`;
+      html += `<div class="h-sec">${ic(c.icon || 'info')} ${esc(Lx(c.title))} <small>${items.length}</small></div><div class="card phrases">${items.map(it => `<div class="phrase"><div class="grow"><strong>${esc(it.es)}</strong>${it.region && it.region !== 'both' ? ` <span class="badge plain">${it.region === 'AR' ? '🇦🇷' : '🇨🇱'}</span>` : ''}<div class="small muted">${esc(it[tr] || it.en)}</div>${it.say ? `<div class="tiny" style="color:var(--accent)">🔊 ${esc(it.say)}</div>` : ''}</div><button class="btn soft round" data-say="${esc(it.es)}" aria-label="${t('listen')}">${ic('volume-2')}</button></div>`).join('')}</div>`;
     }
     $('#plist').innerHTML = html || `<p class="muted" style="text-align:center">${t('noResults')}</p>`;
-    $('#plist').querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(b.dataset.say));
+    $('#plist').querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(b.dataset.say, b));
   };
   render();
   let tmr; $('#pq').addEventListener('input', e => { clearTimeout(tmr); tmr = setTimeout(() => { phraseQ = e.target.value; render(); }, 120); });
@@ -742,7 +758,8 @@ function vTodo() {
     <div class="small muted">${Sync.room ? `${ic('circle-check', 'sm')} ${t('sharedWith', { n: other() })}` : t('onlyDevice')}</div></div></div></div>
     <form class="card add-card" id="tdForm"><div class="add-row"><input id="tdIn" class="ex-text" placeholder="${t('todoPh')}" autocomplete="off" enterkeyhint="done"><button class="btn round" aria-label="${t('add')}">${ic('plus')}</button></div>
     <div class="add-who"><span class="tiny muted">${t('whoDoes')}</span>${[...PEEPS, 'both'].map(w => `<button type="button" class="chip ${nw === w ? 'on' : ''}" data-nw="${w}">${esc(whoLabel(w))}</button>`).join('')}</div></form>
-    <div class="seg">${[['all', t('everything')], ...PEEPS.map(n => [n, `${n}${mine(n) ? ` · ${mine(n)}` : ''}`])].map(([k, l]) => `<button data-tf="${k}" class="${filter === k ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>`;
+    <div class="seg">${[['all', t('everything')], ...PEEPS.map(n => [n, `${n}${mine(n) ? ` · ${mine(n)}` : ''}`])].map(([k, l]) => `<button data-tf="${k}" class="${filter === k ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>
+    <a class="card link-card" href="#/agendabestand">${ic('bell-plus')}<span class="grow"><strong>${ft('remH')}</strong><span class="small muted">${ft('remLink')}</span></span>${ic('chevron-right', 'sm')}</a>`;
   let any = false;
   for (const g of groups) {
     const items = g.items.filter(show); if (!items.length) continue; any = true;
@@ -751,7 +768,7 @@ function vTodo() {
     for (const it of items) {
       const on = !!Sync.get(todoKey(it.id)), m = Sync.meta(todoKey(it.id));
       h += `<div class="crow"><label class="check ${on ? 'done' : ''}"><input type="checkbox" data-todo="${esc(it.id)}" ${on ? 'checked' : ''}><span>${esc(it.text)}${it.message ? ` <a href="#/bericht/${esc(it.message)}">${t('message')}</a>` : ''}${on && m?.by ? `<span class="who">✓ ${esc(m.by)}</span>` : ''}</span></label>
-        <div class="crow-act">${whoPill(it.who, `data-tw="${esc(it.own || it.id)}"`)}${it.own ? `<button type="button" class="xbtn" data-tdel="${esc(it.own)}" aria-label="${t('delete')}">${ic('x', 'sm')}</button>` : ''}</div></div>`;
+        <div class="crow-act">${on ? '' : `<button type="button" class="xbtn" data-tbell="${esc(it.id)}" aria-label="${ft('todoRem')}">${ic('bell-plus', 'sm')}</button>`}${whoPill(it.who, `data-tw="${esc(it.own || it.id)}"`)}${it.own ? `<button type="button" class="xbtn" data-tdel="${esc(it.own)}" aria-label="${t('delete')}">${ic('x', 'sm')}</button>` : ''}</div></div>`;
     }
     h += `</div>`;
   }
@@ -766,6 +783,15 @@ function vTodo() {
     if (k.startsWith('ctodo:')) { const c = Sync.get(k); Sync.set(k, { ...c, who: nextWho(c.who || '', opts) }); }
     else Sync.set('todoWho:' + k, nextWho(Sync.get('todoWho:' + k, ''), opts));
   }));
+  view.querySelectorAll('[data-tbell]').forEach(b => b.onclick = () => {
+    const row = b.closest('.crow'), open = row.nextElementSibling?.classList.contains('rem-inline');
+    view.querySelectorAll('.rem-inline').forEach(x => x.remove()); if (open) return;
+    const it = flat.find(i => i.id === b.dataset.tbell), d = new Date(Date.now() + 864e5);
+    const box = document.createElement('div'); box.className = 'rem-inline';
+    box.innerHTML = `<span class="tiny muted">${ic('bell-plus', 'sm')} ${ft('todoRem')}</span><input type="date" value="${iso(d)}"><input type="time" value="09:00"><button type="button" class="btn">${ft('todoRemAdd')}</button>`;
+    row.after(box);
+    box.querySelector('.btn').onclick = () => { const [di, ti] = box.querySelectorAll('input'); if (!di.value || !ti.value) return; saveICS(icsForTodo(it.text, di.value, ti.value), 'herinnering.ics'); box.remove(); };
+  });
   view.querySelectorAll('[data-tdel]').forEach(b => b.onclick = () => { const c = Sync.get(b.dataset.tdel); if (confirm(t('delQ', { x: c.text }))) keep(() => Sync.set(b.dataset.tdel, { ...c, deleted: true }))(); });
   $('#tdForm').onsubmit = e => {
     e.preventDefault(); const text = $('#tdIn').value.trim(); if (!text) return $('#tdIn').focus();
@@ -795,7 +821,8 @@ function vMore() {
 }
 function vInfo() {
   setChrome(t('info'), { back: true });
-  view.innerHTML = T.info.map(s => `<div class="h-sec">${esc(s.title)}</div><div class="card">${s.items.map(i => `<div class="row" style="padding:8px 0"><div class="grow">${i.label ? `<strong>${esc(i.label)}</strong>` : ''}${i.text ? `<div class="${i.label ? 'small muted' : ''}">${esc(i.text)}</div>` : ''}</div>${i.phone ? `<a class="btn soft" href="${tel(i.phone)}">${ic('phone', 'sm')} ${esc(i.phone)}</a>` : ''}</div>`).join('')}</div>`).join('');
+  view.innerHTML = (window.FX_INFO_TOP ? FX_INFO_TOP() : '') + T.info.map(s => `<div class="h-sec">${esc(s.title)}</div><div class="card">${s.items.map(i => `<div class="row" style="padding:8px 0"><div class="grow">${i.label ? `<strong>${esc(i.label)}</strong>` : ''}${i.text ? `<div class="${i.label ? 'small muted' : ''}">${esc(i.text)}</div>` : ''}</div>${i.phone ? `<a class="btn soft" href="${tel(i.phone)}">${ic('phone', 'sm')} ${esc(i.phone)}</a>` : ''}</div>`).join('')}</div>`).join('') + (window.FX_INFO_END ? FX_INFO_END() : '');
+  window.FX_INFO_BIND?.();
 }
 let packWho = null, packEdit = false, packForm = false;
 // wie neemt het mee: 'Martine' | 'Thijs' | 'both' (ieder een eigen)
