@@ -585,3 +585,31 @@ body { background-color: var(--bg); background-image: var(--grain); }
 .hero .eyebrow { letter-spacing: .01em; }
 .nav a.on, .nav a[aria-current] { color: var(--accent); }
 ::selection { background: var(--accent-soft); }
+
+/* ---------- eigen to-do's & paklijst ---------- */
+.add-card { padding: 12px; }
+.add-row { display: flex; gap: 8px; align-items: center; }
+.add-row .ex-text { margin: 0; flex: 1; }
+.add-row .btn.round { width: 46px; height: 46px; border-radius: 14px; flex: none; }
+.add-card select.ex-text { appearance: none; -webkit-appearance: none; font-weight: 600; padding-right: 38px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%237b6f64' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; }
+.add-who { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.add-who .tiny { width: 100%; font-weight: 700; }
+.add-who .chip { padding: 6px 12px; box-shadow: inset 0 0 0 1px var(--line); background: var(--surface-2); }
+.add-who .chip.on { background: var(--text); color: var(--bg); box-shadow: none; }
+.crow { display: flex; align-items: flex-start; gap: 8px; border-top: 1px solid var(--line); }
+.crow:first-child { border-top: 0; }
+.crow .check { flex: 1; min-width: 0; border-top: 0; padding: 12px 0; }
+.crow:first-child .check { padding-top: 2px; }
+.crow:last-child .check { padding-bottom: 2px; }
+.check.plain { cursor: default; }
+.crow-act { display: flex; align-items: center; gap: 4px; padding-top: 10px; flex: none; }
+.crow:first-child .crow-act { padding-top: 0; }
+.wpill { display: inline-flex; align-items: center; gap: 4px; font: inherit; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; border: 0; cursor: pointer;
+  color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); white-space: nowrap; }
+.wpill.none { color: var(--muted); background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); padding: 4px 9px 4px 7px; }
+.wpill .ico.sm { width: 14px; height: 14px; }
+.xbtn { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: var(--surface-2); border: 0; cursor: pointer; }
+.xbtn .ico.sm { width: 14px; height: 14px; }
+.pk-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0 0 12px; }
+.pk-tools .btn { justify-content: center; }
+.wx-tip-card { padding: 12px 14px; }

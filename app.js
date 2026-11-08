@@ -714,24 +714,65 @@ function vBooking(id) {
 
 /* ================= te doen ================= */
 const todoKey = id => 'todo:' + id;
-function openTodoCount() { return T.todos.flatMap(g => g.items).filter(i => !Sync.get(todoKey(i.id))).length; }
+const PEEPS = ['Martine', 'Thijs'];
+const whoColor = w => w === 'Martine' ? 'var(--p-ba)' : w === 'Thijs' ? 'var(--p-calafate)' : 'var(--accent)';
+const whoLabel = w => w === 'both' ? t('both') : w === 'all' ? t('everyone') : w || t('whoQ');
+const whoPill = (w, attr) => `<button type="button" class="wpill ${w ? '' : 'none'}" ${attr} style="--c:${whoColor(w)}">${w ? '' : ic('user-round-plus', 'sm')}${esc(whoLabel(w))}</button>`;
+const nextWho = (w, opts) => opts[(opts.indexOf(w) + 1) % opts.length];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+// eigen items in de gedeelde opslag: prefix → [{ key, id, ...v }]
+const customs = pre => Object.entries(Sync.data()).filter(([k, e]) => k.startsWith(pre) && e.v && !e.v.deleted).map(([k, e]) => ({ key: k, id: k.slice(pre.length), ...e.v })).sort((x, y) => x.at - y.at);
+function allTodos() {
+  const own = customs('ctodo:').map(c => ({ id: 'c_' + c.id, text: c.text, who: c.who || '', own: c.key }));
+  const base = T.todos.map(g => ({ group: g.group, items: g.items.map(i => ({ ...i, who: Sync.get('todoWho:' + i.id, '') })) }));
+  return own.length ? [{ group: t('ownTodos'), own: true, items: own }, ...base] : base;
+}
+function openTodoCount() { return allTodos().flatMap(g => g.items).filter(i => !Sync.get(todoKey(i.id))).length; }
 const other = () => store.get('me') === 'Thijs' ? 'Martine' : 'Thijs';
+let todoNewWho = null;
 function vTodo() {
   setChrome(t('todo'), { back: true });
-  const all = T.todos.flatMap(g => g.items), done = all.filter(i => Sync.get(todoKey(i.id))).length, pct = Math.round(done / all.length * 100);
-  let h = `<div class="card"><div class="row"><div class="ring" style="--p:${pct}"><div>${pct}%</div></div><div class="grow"><strong style="font-size:18px">${t('doneOf', { a: done, b: all.length })}</strong>
-    <div class="small muted">${Sync.room ? `${ic('circle-check', 'sm')} ${t('sharedWith', { n: other() })}` : t('onlyDevice')}</div></div></div></div>`;
-  for (const g of T.todos) {
-    const n = g.items.filter(i => !Sync.get(todoKey(i.id))).length;
+  const groups = allTodos(), flat = groups.flatMap(g => g.items);
+  const done = flat.filter(i => Sync.get(todoKey(i.id))).length, pct = flat.length ? Math.round(done / flat.length * 100) : 0;
+  const filter = store.get('todoFilter', 'all');
+  const show = i => filter === 'all' || i.who === filter || i.who === 'both';
+  const mine = n => flat.filter(i => !Sync.get(todoKey(i.id)) && (i.who === n || i.who === 'both')).length;
+  const nw = todoNewWho ?? store.get('me', '');
+  let h = `<div class="card"><div class="row"><div class="ring" style="--p:${pct}"><div>${pct}%</div></div><div class="grow"><strong style="font-size:18px">${t('doneOf', { a: done, b: flat.length })}</strong>
+    <div class="small muted">${Sync.room ? `${ic('circle-check', 'sm')} ${t('sharedWith', { n: other() })}` : t('onlyDevice')}</div></div></div></div>
+    <form class="card add-card" id="tdForm"><div class="add-row"><input id="tdIn" class="ex-text" placeholder="${t('todoPh')}" autocomplete="off" enterkeyhint="done"><button class="btn round" aria-label="${t('add')}">${ic('plus')}</button></div>
+    <div class="add-who"><span class="tiny muted">${t('whoDoes')}</span>${[...PEEPS, 'both'].map(w => `<button type="button" class="chip ${nw === w ? 'on' : ''}" data-nw="${w}">${esc(whoLabel(w))}</button>`).join('')}</div></form>
+    <div class="seg">${[['all', t('everything')], ...PEEPS.map(n => [n, `${n}${mine(n) ? ` · ${mine(n)}` : ''}`])].map(([k, l]) => `<button data-tf="${k}" class="${filter === k ? 'on' : ''}">${esc(l)}</button>`).join('')}</div>`;
+  let any = false;
+  for (const g of groups) {
+    const items = g.items.filter(show); if (!items.length) continue; any = true;
+    const n = items.filter(i => !Sync.get(todoKey(i.id))).length;
     h += `<div class="h-sec">${esc(g.group)} <small>${n ? t('nOpen', { n }) : t('allDone')}</small></div><div class="card">`;
-    for (const it of g.items) {
+    for (const it of items) {
       const on = !!Sync.get(todoKey(it.id)), m = Sync.meta(todoKey(it.id));
-      h += `<label class="check ${on ? 'done' : ''}"><input type="checkbox" data-todo="${esc(it.id)}" ${on ? 'checked' : ''}><span>${esc(it.text)}${it.message ? ` <a href="#/bericht/${esc(it.message)}">${t('message')}</a>` : ''}${on && m?.by ? `<span class="who">✓ ${esc(m.by)}</span>` : ''}</span></label>`;
+      h += `<div class="crow"><label class="check ${on ? 'done' : ''}"><input type="checkbox" data-todo="${esc(it.id)}" ${on ? 'checked' : ''}><span>${esc(it.text)}${it.message ? ` <a href="#/bericht/${esc(it.message)}">${t('message')}</a>` : ''}${on && m?.by ? `<span class="who">✓ ${esc(m.by)}</span>` : ''}</span></label>
+        <div class="crow-act">${whoPill(it.who, `data-tw="${esc(it.own || it.id)}"`)}${it.own ? `<button type="button" class="xbtn" data-tdel="${esc(it.own)}" aria-label="${t('delete')}">${ic('x', 'sm')}</button>` : ''}</div></div>`;
     }
     h += `</div>`;
   }
+  if (!any) h += `<div class="empty">${ic('circle-check', 'lg')}<p>${t('nothingFor', { n: esc(filter) })}</p></div>`;
   view.innerHTML = h;
-  view.querySelectorAll('[data-todo]').forEach(cb => cb.onchange = () => { Sync.set(todoKey(cb.dataset.todo), cb.checked); const y = scrollY; vTodo(); scrollTo(0, y); });
+  const keep = fn => () => { const y = scrollY; fn(); vTodo(); scrollTo(0, y); };
+  view.querySelectorAll('[data-todo]').forEach(cb => cb.onchange = keep(() => Sync.set(todoKey(cb.dataset.todo), cb.checked)));
+  view.querySelectorAll('[data-tf]').forEach(b => b.onclick = keep(() => store.set('todoFilter', b.dataset.tf)));
+  view.querySelectorAll('[data-nw]').forEach(b => b.onclick = () => { todoNewWho = todoNewWho === b.dataset.nw ? '' : b.dataset.nw; view.querySelectorAll('[data-nw]').forEach(x => x.classList.toggle('on', x.dataset.nw === todoNewWho)); $('#tdIn').focus(); });
+  view.querySelectorAll('[data-tw]').forEach(b => b.onclick = keep(() => {
+    const k = b.dataset.tw, opts = ['', ...PEEPS, 'both'];
+    if (k.startsWith('ctodo:')) { const c = Sync.get(k); Sync.set(k, { ...c, who: nextWho(c.who || '', opts) }); }
+    else Sync.set('todoWho:' + k, nextWho(Sync.get('todoWho:' + k, ''), opts));
+  }));
+  view.querySelectorAll('[data-tdel]').forEach(b => b.onclick = () => { const c = Sync.get(b.dataset.tdel); if (confirm(t('delQ', { x: c.text }))) keep(() => Sync.set(b.dataset.tdel, { ...c, deleted: true }))(); });
+  $('#tdForm').onsubmit = e => {
+    e.preventDefault(); const text = $('#tdIn').value.trim(); if (!text) return $('#tdIn').focus();
+    Sync.set('ctodo:' + uid(), { text, who: todoNewWho ?? store.get('me', ''), at: Date.now() });
+    if (store.get('todoFilter', 'all') !== 'all' && (todoNewWho ?? store.get('me', '')) !== store.get('todoFilter')) store.set('todoFilter', 'all');
+    vTodo(); toast(t('added')); setTimeout(() => $('#tdIn')?.focus(), 30);
+  };
 }
 function vMessage(key) {
   const m = T.messages[key]; if (!m) return vTodo();
@@ -756,21 +797,63 @@ function vInfo() {
   setChrome(t('info'), { back: true });
   view.innerHTML = T.info.map(s => `<div class="h-sec">${esc(s.title)}</div><div class="card">${s.items.map(i => `<div class="row" style="padding:8px 0"><div class="grow">${i.label ? `<strong>${esc(i.label)}</strong>` : ''}${i.text ? `<div class="${i.label ? 'small muted' : ''}">${esc(i.text)}</div>` : ''}</div>${i.phone ? `<a class="btn soft" href="${tel(i.phone)}">${ic('phone', 'sm')} ${esc(i.phone)}</a>` : ''}</div>`).join('')}</div>`).join('');
 }
-let packWho = null;
+let packWho = null, packEdit = false, packForm = false;
+// wie neemt het mee: 'Martine' | 'Thijs' | 'both' (ieder een eigen)
+const packOwner = i => Sync.get('packWho:' + i.id, i.who === 'm' ? 'Martine' : i.who === 't' ? 'Thijs' : 'both');
+function packCats() {
+  const own = customs('cpack:');
+  const cats = T.packing.map((c, ci) => ({ ...c, items: [...c.items, ...own.filter(o => o.ci === ci).map(o => ({ id: 'c_' + o.id, t: o.t, own: o.key, ow: o.who }))] }));
+  const extra = own.filter(o => !(o.ci >= 0 && o.ci < T.packing.length));
+  if (extra.length) cats.push({ cat: t('extraCat'), icon: 'sparkles', items: extra.map(o => ({ id: 'c_' + o.id, t: o.t, own: o.key, ow: o.who })) });
+  for (const c of cats) for (const i of c.items) i.owner = i.own ? (i.ow || 'both') : packOwner(i);
+  return cats;
+}
 function vPack() {
   setChrome(t('packing'), { back: true });
   const who = packWho || store.get('me') || 'Martine', w = who === 'Thijs' ? 't' : 'm', key = id => `pack:${w}:${id}`;
-  const cats = T.packing.map(c => ({ ...c, items: c.items.filter(i => !i.who || i.who === w) }));
-  const all = cats.flatMap(c => c.items), done = all.filter(i => Sync.get(key(i.id))).length, pct = Math.round(done / all.length * 100);
-  view.innerHTML = `<div class="seg">${['Martine', 'Thijs'].map(n => `<button data-who="${n}" class="${who === n ? 'on' : ''}">${n}</button>`).join('')}</div>
-    <div class="card"><div class="row"><div class="ring" style="--p:${pct}"><div>${pct}%</div></div><div class="grow"><strong style="font-size:18px">${t('packedOf', { a: done, b: all.length })}</strong>
+  const all0 = packCats();
+  const cats = packEdit ? all0 : all0.map(c => ({ ...c, items: c.items.filter(i => i.owner === 'both' || i.owner === who) }));
+  const all = cats.flatMap(c => c.items), done = all.filter(i => Sync.get(key(i.id))).length, pct = all.length ? Math.round(done / all.length * 100) : 0;
+  const nOther = all0.flatMap(c => c.items).filter(i => i.owner === (who === 'Martine' ? 'Thijs' : 'Martine') && (i.own || Sync.get('packWho:' + i.id) != null)).length;
+  let h = `<div class="seg">${PEEPS.map(n => `<button data-who="${n}" class="${who === n ? 'on' : ''}">${n}</button>`).join('')}</div>`;
+  if (!packEdit) h += `<div class="card"><div class="row"><div class="ring" style="--p:${pct}"><div>${pct}%</div></div><div class="grow"><strong style="font-size:18px">${t('packedOf', { a: done, b: all.length })}</strong>
     <div class="small muted">${t('listOf', { n: esc(who) })}${Sync.room ? t('visibleBoth') : ''}</div></div></div>
-    <div class="wx-tip" style="margin-top:12px">${ic('circle-alert', 'sm')}<span>${t('domesticNote')}</span></div></div>` +
-    cats.map(c => { const n = c.items.filter(i => Sync.get(key(i.id))).length;
-      return `<div class="h-sec">${ic(c.icon)} ${esc(c.cat)} <small>${n}/${c.items.length}</small></div><div class="card">${c.note ? `<p class="small muted" style="margin:0 0 6px">${esc(c.note)}</p>` : ''}${c.items.map(i => { const on = !!Sync.get(key(i.id));
-        return `<label class="check ${on ? 'done' : ''}"><input type="checkbox" data-p="${esc(i.id)}" ${on ? 'checked' : ''}><span>${esc(i.t)}${i.note ? `<span class="who">${esc(i.note)}</span>` : ''}</span></label>`; }).join('')}</div>`; }).join('');
+    <div class="wx-tip" style="margin-top:12px">${ic('circle-alert', 'sm')}<span>${t('domesticNote')}</span></div></div>`;
+  else h += `<div class="card wx-tip-card"><div class="wx-tip">${ic('users', 'sm')}<span>${t('divideTip')}</span></div></div>`;
+  if (packForm) h += `<form class="card add-card" id="pkForm"><div class="add-row"><input id="pkIn" class="ex-text" placeholder="${t('packPh')}" autocomplete="off" enterkeyhint="done"><button class="btn round" aria-label="${t('add')}">${ic('plus')}</button></div>
+    <select id="pkCat" class="ex-text">${T.packing.map((c, ci) => `<option value="${ci}" ${store.get('pkCat', -1) == ci ? 'selected' : ''}>${esc(c.cat)}</option>`).join('')}<option value="-1" ${store.get('pkCat', -1) == -1 ? 'selected' : ''}>${t('extraCat')}</option></select>
+    <div class="add-who"><span class="tiny muted">${t('whoBrings')}</span>${[...PEEPS, 'both'].map(x => `<button type="button" class="chip ${x === who ? 'on' : ''}" data-pw="${x}">${esc(x === 'both' ? t('bothPack') : x)}</button>`).join('')}</div></form>`;
+  h += `<div class="pk-tools"><button class="btn soft" id="pkAdd">${ic(packForm ? 'x' : 'plus', 'sm')} ${packForm ? t('close') : t('addPack')}</button><button class="btn ${packEdit ? '' : 'soft'}" id="pkEdit">${ic(packEdit ? 'check' : 'users', 'sm')} ${packEdit ? t('divideDone') : t('divide')}</button></div>`;
+  if (!packEdit && nOther) h += `<p class="tiny muted" style="margin:-4px 4px 4px">${t('otherBrings', { n: nOther, o: esc(who === 'Martine' ? 'Thijs' : 'Martine') })}</p>`;
+  h += cats.map(c => { if (!c.items.length) return ''; const n = c.items.filter(i => Sync.get(key(i.id))).length;
+    return `<div class="h-sec">${ic(c.icon || 'backpack')} ${esc(c.cat)} ${packEdit ? '' : `<small>${n}/${c.items.length}</small>`}</div><div class="card">${c.note && !packEdit ? `<p class="small muted" style="margin:0 0 6px">${esc(c.note)}</p>` : ''}${c.items.map(i => { const on = !!Sync.get(key(i.id));
+      const pill = packEdit || i.own || Sync.get('packWho:' + i.id) != null ? whoPill(i.owner === 'both' ? (packEdit || i.own ? 'both' : '') : i.owner, `data-pkw="${esc(i.own || i.id)}"`).replace(t('both'), t('bothPack')) : '';
+      const del = i.own ? `<button type="button" class="xbtn" data-pkdel="${esc(i.own)}" aria-label="${t('delete')}">${ic('x', 'sm')}</button>` : '';
+      const body = `<span>${esc(i.t)}${i.note && !packEdit ? `<span class="who">${esc(i.note)}</span>` : ''}</span>`;
+      return `<div class="crow">${packEdit ? `<div class="check plain">${body}</div>` : `<label class="check ${on ? 'done' : ''}"><input type="checkbox" data-p="${esc(i.id)}" ${on ? 'checked' : ''}>${body}</label>`}${pill || del ? `<div class="crow-act">${pill}${del}</div>` : ''}</div>`; }).join('')}</div>`; }).join('');
+  view.innerHTML = h;
+  const keep = fn => () => { const y = scrollY; fn(); vPack(); scrollTo(0, y); };
   view.querySelectorAll('[data-who]').forEach(b => b.onclick = () => { packWho = b.dataset.who; vPack(); });
-  view.querySelectorAll('[data-p]').forEach(cb => cb.onchange = () => { Sync.set(key(cb.dataset.p), cb.checked); const y = scrollY; vPack(); scrollTo(0, y); });
+  view.querySelectorAll('[data-p]').forEach(cb => cb.onchange = keep(() => Sync.set(key(cb.dataset.p), cb.checked)));
+  $('#pkEdit').onclick = keep(() => { packEdit = !packEdit; });
+  $('#pkAdd').onclick = () => { packForm = !packForm; vPack(); if (packForm) setTimeout(() => $('#pkIn')?.focus(), 30); };
+  view.querySelectorAll('[data-pkw]').forEach(b => b.onclick = keep(() => {
+    const k = b.dataset.pkw, opts = ['both', ...PEEPS];
+    if (k.startsWith('cpack:')) { const c = Sync.get(k); Sync.set(k, { ...c, who: nextWho(c.who || 'both', opts) }); }
+    else { const it = all0.flatMap(c => c.items).find(i => i.id === k); Sync.set('packWho:' + k, nextWho(it.owner, opts)); }
+  }));
+  view.querySelectorAll('[data-pkdel]').forEach(b => b.onclick = () => { const c = Sync.get(b.dataset.pkdel); if (confirm(t('delQ', { x: c.t }))) keep(() => Sync.set(b.dataset.pkdel, { ...c, deleted: true }))(); });
+  if (packForm) {
+    let pw = who;
+    view.querySelectorAll('[data-pw]').forEach(b => b.onclick = () => { pw = b.dataset.pw; view.querySelectorAll('[data-pw]').forEach(x => x.classList.toggle('on', x === b)); $('#pkIn').focus(); });
+    $('#pkForm').onsubmit = e => {
+      e.preventDefault(); const text = $('#pkIn').value.trim(); if (!text) return $('#pkIn').focus();
+      const ci = Number($('#pkCat').value); store.set('pkCat', ci);
+      Sync.set('cpack:' + uid(), { t: text, who: pw, ci, at: Date.now() });
+      if (pw !== 'both' && pw !== who) packWho = pw;
+      const y = scrollY; vPack(); scrollTo(0, y); toast(t('added')); setTimeout(() => $('#pkIn')?.focus(), 30);
+    };
+  }
 }
 function vNotes() {
   setChrome(t('notes'), { back: true });
